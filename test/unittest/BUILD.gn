@@ -1,0 +1,63 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#import("//build/test.gni")
+import("//build/ohos.gni")
+ohos_executable("tel_sms_mms_test") {
+  sources = [
+    "//base/telephony/core_service/interfaces/innerkits/sms_mms/proxy/sms_service_proxy.cpp",
+    "//base/telephony/sms_mms/interfaces/kits/src/delivery_short_message_callback_stub.cpp",
+    "//base/telephony/sms_mms/interfaces/kits/src/send_short_message_callback_stub.cpp",
+    "//base/telephony/sms_mms/interfaces/kits/src/short_message.cpp",
+    "gsm_sms_sender_test.cpp",
+    "short_message_test.cpp",
+    "sms_broadcast_subscriber.cpp",
+    "sms_mms_test.cpp",
+  ]
+
+  include_dirs = [
+    "//base/telephony/sms_mms/services/include",
+    "//base/telephony/sms_mms/services/include/cdma",
+    "//base/telephony/sms_mms/services/include/gsm",
+    "//base/telephony/sms_mms/utils",
+
+    "//base/telephony/core_service/interfaces/innerkits/sms_mms/proxy",
+    "//base/telephony/core_service/interfaces/innerkits/common",
+    "//base/telephony/core_service/interfaces/kits/include/",
+    "//base/telephony/sms_mms/interfaces/kits/include",
+  ]
+
+  deps = [
+    "//base/telephony/core_service:tel_core_service",
+    "//base/telephony/sms_mms:tel_sms_mms",
+    "//utils/native/base:utils",
+  ]
+  external_deps = [
+    "aafwk_standard:want",
+    "appexecfwk_standard:libeventhandler",
+    "ces_standard:cesfwk_kits",
+    "ces_standard:cesfwk_services",
+    "ipc:ipc_core",
+    "safwk:system_ability_fwk",
+    "samgr_L2:samgr_proxy",
+  ]
+
+  if (is_standard_system) {
+    external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
+  } else {
+    external_deps += [ "hilog:libhilog" ]
+  }
+
+  part_name = "sms_mms"
+  subsystem_name = "telephony"
+}

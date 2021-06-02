@@ -12,7 +12,7 @@
 
 ## Introduction<a name="section117mcpsimp"></a>
 
-The SMS and MMS module provides the capabilities of sending and receiving short message service \(SMS\) messages and encoding and decoding multimedia messaging service \(MMS\) messages for mobile data users. Its main functions include the following: GSM/CDMA SMS message receiving and sending, SMS protocol data unit \(PDU\) encoding and decoding, WAP Push message receiving and processing, cell broadcast message receiving, MMS message notification, MMS message encoding and decoding, and SIM SMS record management.  ![](figures/c-usersadministratordesktopimg.png)
+The SMS and MMS module provides the capabilities of sending and receiving short message service \(SMS\) messages and encoding and decoding multimedia messaging service \(MMS\) messages for mobile data users. Its main functions include the following: GSM/CDMA SMS message receiving and sending, SMS protocol data unit \(PDU\) encoding and decoding, WAP Push message receiving and processing, cell broadcast message receiving, MMS message notification, MMS message encoding and decoding, and SIM SMS record management.
 
 **Figure  1**  Architecture of the SMS and MMS module<a name="fig420553511549"></a>
 ![](figures/en-us_architecture-of-the-sms-and-mms-module.png)
@@ -352,8 +352,8 @@ The function of creating a  **ShortMessage**  object with a 3GPP PDU is used as 
 
 ## Repositories Involved<a name="section189mcpsimp"></a>
 
-Telephony
+[Telephony](https://gitee.com/openharmony/docs/blob/master/en/readme/telephony.md)
 
-telephony_sms_mms
+**telephony_sms_mms**
 
-telephony_core_service
+[telephony_core_service](https://gitee.com/openharmony/telephony_core_service/blob/master/README.md)

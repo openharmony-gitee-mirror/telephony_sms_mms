@@ -12,7 +12,7 @@
 
 ## 简介<a name="section117mcpsimp"></a>
 
-短彩信业务为移动数据用户提供短信收发和彩信编解码功能。主要功能有GSM/CDMA短信收发、短信PDU（Protocol data unit，协议数据单元）编解码、Wap Push接收处理 、小区广播接收、彩信通知、 彩信编解码和SIM短信记录增删改查等![](figures/C-UsersAdministratorDesktopimg.png)
+短彩信业务为移动数据用户提供短信收发和彩信编解码功能。主要功能有GSM/CDMA短信收发、短信PDU（Protocol data unit，协议数据单元）编解码、Wap Push接收处理 、小区广播接收、彩信通知、 彩信编解码和SIM短信记录增删改查等。
 
 **图 1**  短彩信模块架构图<a name="fig420553511549"></a>
 ![](figures/zh-cn_architecture-of-the-sms-and-mms-module.png)
@@ -352,8 +352,8 @@
 
 ## 相关仓<a name="section189mcpsimp"></a>
 
-电话服务子系统
+[电话服务子系统](https://gitee.com/openharmony/docs/blob/master/zh-cn/readme/%E7%94%B5%E8%AF%9D%E6%9C%8D%E5%8A%A1%E5%AD%90%E7%B3%BB%E7%BB%9F.md)
 
-telephony_sms_mms
+**telephony_sms_mms** 
 
-telephony_core_service
+[telephony_core_service](https://gitee.com/openharmony/telephony_core_service/blob/master/README_zh.md)

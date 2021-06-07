@@ -27,7 +27,7 @@
 ## 目录<a name="section125mcpsimp"></a>
 
 ```
-/OpenHarmony_Standard_System/base/telephony/sms_mms
+/base/telephony/sms_mms
 ├─ interfaces               # 对外暴露的接口
 │  └─ kits
 ├─ sa_profile               # 启动配置文件

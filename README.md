@@ -27,7 +27,7 @@ The SMS and MMS module consists of four major parts:
 ## Directory Structure<a name="section125mcpsimp"></a>
 
 ```
-/OpenHarmony_Standard_System/base/telephony/sms_mms
+/base/telephony/sms_mms
 ├─ interfaces               # External APIs
 │  └─ kits
 ├─ sa_profile               # SA profile

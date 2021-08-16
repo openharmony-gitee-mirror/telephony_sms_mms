@@ -12,23 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef STRING_UTILS_H
 #define STRING_UTILS_H
+
 #include <codecvt>
 #include <cstdint>
 #include <locale>
 #include <string>
 #include <vector>
+
 namespace OHOS {
-namespace SMS {
-#define HEX_BYTE_STEP 2
-static const std::string HEX_TABLE = "0123456789ABCDEF";
+namespace Telephony {
 class StringUtils {
 public:
     static std::string StringToHex(const std::string &data);
     static std::string HexToString(const std::string &str);
-    static std::string StringToHex(const char *data, int bytelength);
-    static char *HexstringToBytes(const std::string &str);
+    static std::string StringToHex(const char *data, int byteLength);
     static std::string ToUtf8(const std::u16string &str16);
     static std::u16string ToUtf16(const std::string &str);
     static std::string StringToHex(const std::vector<uint8_t> &data);
@@ -38,11 +38,10 @@ private:
     StringUtils();
     virtual ~StringUtils();
     static uint16_t HexCharToInt(char c);
-    static constexpr uint8_t hexOffset_ = 4;
-    static constexpr uint8_t step2Bit_ = 2;
-    static constexpr uint8_t hexadecimal_ = 16;
-    static constexpr uint8_t decimal_ = 10;
+
+    static constexpr uint8_t HEX_OFFSET = 4;
+    static constexpr uint8_t STEP_2BIT = 2;
 };
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS
 #endif

@@ -12,7 +12,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "gsm_sms_wappush_handler.h"
+
+#include "sms_wap_push_handler.h"
+
 namespace OHOS {
-namespace SMS {} // namespace SMS
+namespace Telephony {
+using namespace std;
+SmsWapPushHandler::SmsWapPushHandler(const shared_ptr<AppExecFwk::EventRunner> &runner, int32_t slotId)
+    : AppExecFwk::EventHandler(runner), slotId_(slotId)
+{}
+
+SmsWapPushHandler::~SmsWapPushHandler() {}
+
+void SmsWapPushHandler::ProcessEvent(const AppExecFwk::InnerEvent::Pointer &event)
+{
+    if (event == nullptr) {
+        TELEPHONY_LOGE("SmsWapPushHandler ProcessEvent event == nullptr");
+        return;
+    }
+
+    int eventId = event->GetInnerEventId();
+    TELEPHONY_LOGI("SmsWapPushHandler eventId = %{public}d", eventId);
+}
+} // namespace Telephony
 } // namespace OHOS

@@ -12,16 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "sms_base_message.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 using namespace std;
-string SmsBaseMessage::GetScAddress() const
+string SmsBaseMessage::GetSmscAddr() const
 {
     return scAddress_;
 }
 
-void SmsBaseMessage::SetScAddress(const string &address)
+void SmsBaseMessage::SetSmscAddr(const string &address)
 {
     scAddress_ = address;
 }
@@ -36,7 +38,7 @@ string SmsBaseMessage::GetVisibleOriginatingAddress() const
     return originatingAddress_;
 }
 
-enum ShortMessageClass SmsBaseMessage::GetMessageClass() const
+enum SmsMessageClass SmsBaseMessage::GetMessageClass() const
 {
     return msgClass_;
 }
@@ -65,8 +67,8 @@ long SmsBaseMessage::GetScTimestamp() const
 bool SmsBaseMessage::IsReplaceMessage()
 {
     uint8_t temp = static_cast<uint8_t>(protocolId_);
-    uint8_t tempPid = temp & pid10Low_;
-    bReplaceMessage_ = ((temp & pid87_) == pid7_) && (tempPid > 0) && (tempPid < MAX_REPLAY_PID);
+    uint8_t tempPid = temp & PID_10_LOW;
+    bReplaceMessage_ = ((temp & PID_87) == PID_7) && (tempPid > 0) && (tempPid < MAX_REPLY_PID);
     return bReplaceMessage_;
 }
 
@@ -101,12 +103,12 @@ int SmsBaseMessage::GetStatus() const
 
 bool SmsBaseMessage::IsSmsStatusReportMessage() const
 {
-    return bStatusRoretMessage_;
+    return bStatusReportMessage_;
 }
 
 bool SmsBaseMessage::HasReplyPath() const
 {
-    return hasReplayPath_;
+    return hasReplyPath_;
 }
 
 int SmsBaseMessage::GetProtocolId() const
@@ -187,25 +189,30 @@ bool SmsBaseMessage::IsWapPushMsg()
     return false;
 }
 
-void SmsBaseMessage::ConvertMessageClass(enum SMS_MSG_CLASS_E msgClass)
+void SmsBaseMessage::ConvertMessageClass(enum SmsMessageClass msgClass)
 {
     switch (msgClass) {
         case SMS_SIM_MESSAGE:
-            msgClass_ = ShortMessageClass::SMS_SIM_MESSAGE;
+            msgClass_ = SmsMessageClass::SMS_SIM_MESSAGE;
             break;
         case SMS_INSTANT_MESSAGE:
-            msgClass_ = ShortMessageClass::SMS_INSTANT_MESSAGE;
+            msgClass_ = SmsMessageClass::SMS_INSTANT_MESSAGE;
             break;
         case SMS_OPTIONAL_MESSAGE:
-            msgClass_ = ShortMessageClass::SMS_OPTIONAL_MESSAGE;
+            msgClass_ = SmsMessageClass::SMS_OPTIONAL_MESSAGE;
             break;
         case SMS_FORWARD_MESSAGE:
-            msgClass_ = ShortMessageClass::SMS_FORWARD_MESSAGE;
+            msgClass_ = SmsMessageClass::SMS_FORWARD_MESSAGE;
             break;
         default:
-            msgClass_ = ShortMessageClass::SMS_CLASS_UNKNOWN;
+            msgClass_ = SmsMessageClass::SMS_CLASS_UNKNOWN;
             break;
     }
 }
-} // namespace SMS
+
+int SmsBaseMessage::GetMsgRef()
+{
+    return msgRef_;
+}
+} // namespace Telephony
 } // namespace OHOS

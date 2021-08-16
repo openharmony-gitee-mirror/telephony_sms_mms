@@ -15,24 +15,25 @@
 
 #ifndef DELIVERY_CALL_BACK_H
 #define DELIVERY_CALL_BACK_H
+
 #include "delivery_short_message_callback_stub.h"
 #include "napi/native_api.h"
 
 namespace OHOS {
-namespace TelephonyNapi {
+namespace Telephony {
 class DeliveryCallback : public DeliveryShortMessageCallbackStub {
 public:
-    DeliveryCallback(bool hasCallback, napi_env env, napi_value thisVar, napi_ref callbackRef);
+    DeliveryCallback(bool hasCallback, napi_env env, napi_ref thisVarRef, napi_ref callbackRef);
     ~DeliveryCallback();
-    int32_t OnSmsDeliveryResult(const std::u16string pdu) override;
+    void OnSmsDeliveryResult(const std::u16string pdu) override;
 
 private:
     bool hasCallback_;
     napi_env env_;
-    napi_value thisVar_;
+    napi_ref thisVarRef_;
     napi_ref callbackRef_;
 };
-} // namespace TelephonyNapi
+} // namespace Telephony
 } // namespace OHOS
 
 #endif // DELIVERY_CALL_BACK_H

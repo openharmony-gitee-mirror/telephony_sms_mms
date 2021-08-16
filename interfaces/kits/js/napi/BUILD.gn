@@ -19,24 +19,35 @@ ohos_shared_library("telephony_sms") {
     "$SUBSYSTEM_DIR/sms_mms/interfaces/kits/include",
     "$SUBSYSTEM_DIR/sms_mms/services/include",
     "$SUBSYSTEM_DIR/sms_mms/services/include/gsm",
+    "$SUBSYSTEM_DIR/sms_mms/services/include/cdma",
     "$SUBSYSTEM_DIR/sms_mms/utils",
     "$SUBSYSTEM_DIR/core_service/interfaces/innerkits/sms_mms/common",
     "$SUBSYSTEM_DIR/core_service/interfaces/innerkits/sms_mms/proxy",
+    "$SUBSYSTEM_DIR/core_service/interfaces/innerkits/api",
+    "$SUBSYSTEM_DIR/ril_adapter/interfaces/innerkits",
+    "$SUBSYSTEM_DIR/core_service/interfaces/innerkits/common",
   ]
 
   sources = [
+    "$SUBSYSTEM_DIR/core_service/interfaces/innerkits/api/napi_util.cpp",
     "src/delivery_callback.cpp",
     "src/napi_sms.cpp",
-    "src/napi_util.cpp",
     "src/send_callback.cpp",
   ]
 
   deps = [
     "$SUBSYSTEM_DIR/sms_mms:tel_sms_mms",
     "$SUBSYSTEM_DIR/sms_mms/interfaces/kits:tel_sms_mms_api",
+    "//base/telephony/core_service/common:libtelephony_common",
     "//foundation/ace/napi:ace_napi",
     "//utils/native/base:utils",
   ]
+
+  defines = [
+    "TELEPHONY_LOG_TAG = \"SMS_MMS_API\"",
+    "LOG_DOMAIN = 0xD002B01",
+  ]
+
   external_deps = [
     "appexecfwk_standard:libeventhandler",
     "ipc:ipc_core",

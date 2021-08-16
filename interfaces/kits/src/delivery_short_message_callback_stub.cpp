@@ -12,12 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "delivery_short_message_callback_stub.h"
 
+#include "telephony_log_wrapper.h"
+
 namespace OHOS {
-int32_t DeliveryShortMessageCallbackStub::OnSmsDeliveryResult(const std::u16string pdu)
+namespace Telephony {
+void DeliveryShortMessageCallbackStub::OnSmsDeliveryResult(const std::u16string pdu)
 {
-    return 0;
+    TELEPHONY_LOGI("OnSmsDeliveryResult ok");
 }
 
 int DeliveryShortMessageCallbackStub::OnRemoteRequest(
@@ -27,13 +31,13 @@ int DeliveryShortMessageCallbackStub::OnRemoteRequest(
         case ON_SMS_DELIVERY_RESULT: {
             auto result = data.ReadString16();
             OnSmsDeliveryResult(result);
-            return 0;
+            return SMS_DEFAULT_RESULT;
         }
         default: {
             OnSmsDeliveryResult(u"");
-            break;
+            return SMS_DEFAULT_ERROR;
         }
     }
-    return -1;
 }
+} // namespace Telephony
 } // namespace OHOS

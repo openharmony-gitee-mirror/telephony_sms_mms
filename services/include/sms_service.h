@@ -12,14 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef SMS_SERVICE_H
 #define SMS_SERVICE_H
+
 #include <memory>
+
 #include "sms_interface_stub.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 enum ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
 class SmsService : public SystemAbility, public SmsInterfaceStub, public std::enable_shared_from_this<SmsService> {
@@ -31,10 +35,14 @@ public:
     void OnDump() override;
 
 private:
-    bool Init();
+    constexpr static uint32_t CONNECT_MAX_TRY_COUNT = 20;
+    constexpr static uint32_t CONNECT_SERVICE_WAIT_TIME = 2000; // ms
     ServiceRunningState state_ = ServiceRunningState::STATE_NOT_START;
     bool registerToService_ = false;
+
+    bool Init();
+    bool WaitCoreServiceToInit();
 };
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS
 #endif

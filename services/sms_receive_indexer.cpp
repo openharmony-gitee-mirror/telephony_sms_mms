@@ -12,9 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "sms_receive_indexer.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 SmsReceiveIndexer::SmsReceiveIndexer()
 {
     timestamp_ = 0;
@@ -159,7 +161,7 @@ void SmsReceiveIndexer::SetTimestamp(long timestamp)
     timestamp_ = timestamp;
 }
 
-std::vector<uint8_t> &SmsReceiveIndexer::GetPdu()
+const std::vector<uint8_t> &SmsReceiveIndexer::GetPdu() const
 {
     return pdu_;
 }
@@ -176,12 +178,17 @@ void SmsReceiveIndexer::SetPdu(const std::vector<uint8_t> &&pdu)
 
 bool SmsReceiveIndexer::GetIsText() const
 {
-    return (destPort_ == textPortNum_);
+    return (destPort_ == TEXT_PORT_NUM);
 }
 
 bool SmsReceiveIndexer::GetIsWapPushMsg() const
 {
-    return (destPort_ == wapPushPort_);
+    return (destPort_ == WAP_PUSH_PORT);
 }
-} // namespace SMS
+
+bool SmsReceiveIndexer::IsSingleMsg() const
+{
+    return msgCount_ == 1;
+}
+} // namespace Telephony
 } // namespace OHOS

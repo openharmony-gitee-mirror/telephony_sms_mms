@@ -12,27 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "send_short_message_callback_stub.h"
+
+#include "telephony_log_wrapper.h"
+
 namespace OHOS {
-int32_t SendShortMessageCallbackStub::OnSmsSendResult(const SMS::ISendShortMessageCallback::SmsSendResult result)
+namespace Telephony {
+void SendShortMessageCallbackStub::OnSmsSendResult(const ISendShortMessageCallback::SmsSendResult result)
 {
-    switch (result) {
-        case SMS::ISendShortMessageCallback::SmsSendResult::SEND_SMS_SUCCESS:
-            printf("SendShortMessageCallback OnSmsSendResult::SEND_SMS_SUCCESS\r\n");
-            break;
-        case SMS::ISendShortMessageCallback::SmsSendResult::SEND_SMS_FAILURE_RADIO_OFF:
-            printf("SendShortMessageCallback OnSmsSendResult::SEND_SMS_FAILURE_RADIO_OFF\r\n");
-            break;
-        case SMS::ISendShortMessageCallback::SmsSendResult::SEND_SMS_FAILURE_SERVICE_UNAVAILABLE:
-            printf("SendShortMessageCallback OnSmsSendResult::SEND_SMS_FAILURE_SERVICE_UNAVAILABLE\r\n");
-            break;
-        case SMS::ISendShortMessageCallback::SmsSendResult::SEND_SMS_FAILURE_UNKNOWN:
-            printf("SendShortMessageCallback OnSmsSendResult::SEND_SMS_FAILURE_UNKNOWN\r\n");
-            break;
-        default:
-            break;
-    }
-    return 0;
+    TELEPHONY_LOGI("OnSmsSendResult! %{public}d", result);
 }
 
 int SendShortMessageCallbackStub::OnRemoteRequest(
@@ -41,13 +30,14 @@ int SendShortMessageCallbackStub::OnRemoteRequest(
     switch (code) {
         case ON_SMS_SEND_RESULT: {
             int32_t result = data.ReadInt32();
-            OnSmsSendResult(static_cast<SMS::ISendShortMessageCallback::SmsSendResult>(result));
-            return 0;
+            OnSmsSendResult(static_cast<ISendShortMessageCallback::SmsSendResult>(result));
+            return SMS_DEFAULT_RESULT;
         }
         default: {
-            break;
+            TELEPHONY_LOGI("OnSmsSendResult result default!");
+            return SMS_DEFAULT_ERROR;
         }
     }
-    return -1;
 }
+} // namespace Telephony
 } // namespace OHOS

@@ -14,24 +14,31 @@
  */
 
 #include "send_callback.h"
-#include "kit_short_message_hilog_wrap.h"
+#include "telephony_log_wrapper.h"
 #include "napi_util.h"
+
 namespace OHOS {
-namespace TelephonyNapi {
-SendCallback::SendCallback(bool hasCallback, napi_env env, napi_value thisVar, napi_ref callbackRef)
-    : hasCallback_(hasCallback), env_(env), thisVar_(thisVar), callbackRef_(callbackRef)
+namespace Telephony {
+SendCallback::SendCallback(bool hasCallback, napi_env env, napi_ref thisVarRef, napi_ref callbackRef)
+    : hasCallback_(hasCallback), env_(env), thisVarRef_(thisVarRef), callbackRef_(callbackRef)
 {}
 
-SendCallback::~SendCallback() {}
-
-int32_t SendCallback::OnSmsSendResult(const SMS::ISendShortMessageCallback::SmsSendResult result)
+SendCallback::~SendCallback()
 {
+    env_ = nullptr;
+    thisVarRef_ = nullptr;
+    callbackRef_ = nullptr;
+}
+
+void SendCallback::OnSmsSendResult(const ISendShortMessageCallback::SmsSendResult result)
+{
+    TELEPHONY_LOGD("OnSmsSendResult hasCallback_ = %d", hasCallback_);
     if (hasCallback_) {
         napi_handle_scope scope = nullptr;
         napi_open_handle_scope(env_, &scope);
         napi_value callbackFunc = nullptr;
         napi_get_reference_value(env_, callbackRef_, &callbackFunc);
-        napi_value callbackValues[TWO] = {0};
+        napi_value callbackValues[2] = {0};
         callbackValues[0] = NapiUtil::CreateUndefined(env_);
         napi_create_object(env_, &callbackValues[1]);
         SendSmsResult wrapResult = WrapSmsSendResult(result);
@@ -39,14 +46,16 @@ int32_t SendCallback::OnSmsSendResult(const SMS::ISendShortMessageCallback::SmsS
         napi_create_int32(env_, wrapResult, &sendResultValue);
         napi_set_named_property(env_, callbackValues[1], "result", sendResultValue);
         napi_value callbackResult = nullptr;
-        int satatus = napi_call_function(env_, thisVar_, callbackFunc, TWO, callbackValues, &callbackResult);
+        napi_value thisVar = nullptr;
+        napi_get_reference_value(env_, thisVarRef_, &thisVar);
+        napi_call_function(env_, thisVar, callbackFunc, 2, callbackValues, &callbackResult);
+        TELEPHONY_LOGD("OnSmsSendResult napi_call_function satatus");
+        napi_delete_reference(env_, callbackRef_);
         napi_close_handle_scope(env_, scope);
-        return satatus;
     }
-    return -1;
 }
 
-SendSmsResult SendCallback::WrapSmsSendResult(const SMS::ISendShortMessageCallback::SmsSendResult result)
+SendSmsResult SendCallback::WrapSmsSendResult(const ISendShortMessageCallback::SmsSendResult result)
 {
     switch (result) {
         case ISendShortMessageCallback::SmsSendResult::SEND_SMS_SUCCESS: {
@@ -63,5 +72,5 @@ SendSmsResult SendCallback::WrapSmsSendResult(const SMS::ISendShortMessageCallba
         }
     }
 }
-} // namespace TelephonyNapi
+} // namespace Telephony
 } // namespace OHOS

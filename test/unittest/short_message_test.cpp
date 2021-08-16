@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include <inttypes.h>
 #include "short_message_test.h"
 #include <memory>
 #include "string_utils.h"
@@ -42,7 +44,7 @@ void ShortMessageTest::TestShowShortMessage(const ShortMessage &message) const
     printf("GetScAddress = %s\r\n", StringUtils::ToUtf8(message.GetScAddress()).c_str());
     printf("GetVisibleMessageBody = %s\r\n", StringUtils::ToUtf8(message.GetVisibleMessageBody()).c_str());
     printf("GetVisibleRawAddress = %s\r\n", StringUtils::ToUtf8(message.GetVisibleRawAddress()).c_str());
-    printf("GetScTimestamp = %lld\r\n", message.GetScTimestamp());
+    printf("GetScTimestamp = %" PRIu64 "\r\n", message.GetScTimestamp());
     printf("GetProtocolId = %d\r\n", message.GetProtocolId());
     printf("GetStatus = %d\r\n", message.GetStatus());
     printf("GetMessageClass = %d\r\n", message.GetMessageClass());

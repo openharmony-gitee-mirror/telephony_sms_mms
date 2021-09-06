@@ -12,18 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "sms_receive_manager.h"
+
 #include "cdma_sms_receive_handler.h"
 #include "gsm_sms_receive_handler.h"
-#include "sms_hilog_wrapper.h"
+#include "telephony_log_wrapper.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 using namespace std;
 SmsReceiveManager::SmsReceiveManager(int32_t slotId) : slotId_(slotId) {}
 
 SmsReceiveManager::~SmsReceiveManager()
 {
-    gsmSmsReceiveHandler_->UnRegisterHandler();
     gsmSmsReceiveRunner_->Stop();
     cdmaSmsReceiveRunner_->Stop();
 }
@@ -32,32 +34,32 @@ void SmsReceiveManager::Init()
 {
     gsmSmsReceiveRunner_ = AppExecFwk::EventRunner::Create("gsmSmsReceiveHandler" + to_string(slotId_));
     if (gsmSmsReceiveRunner_ == nullptr) {
-        HILOG_ERROR("failed to create GsmEventReceiverRunner");
+        TELEPHONY_LOGE("failed to create GsmEventReceiverRunner");
         return;
     }
     cdmaSmsReceiveRunner_ = AppExecFwk::EventRunner::Create("cdmaSmsReceiveHandler" + to_string(slotId_));
     if (cdmaSmsReceiveRunner_ == nullptr) {
-        HILOG_ERROR("failed to create CdmaEventReceiverRunner");
+        TELEPHONY_LOGE("failed to create CdmaEventReceiverRunner");
         return;
     }
 
     gsmSmsReceiveHandler_ = std::make_shared<GsmSmsReceiveHandler>(gsmSmsReceiveRunner_, slotId_);
     if (gsmSmsReceiveHandler_ == nullptr) {
-        HILOG_ERROR("failed to create GsmSmsReceiveHandler");
+        TELEPHONY_LOGE("failed to create GsmSmsReceiveHandler");
         return;
     }
     cdmaSmsReceiveHandler_ = std::make_shared<CdmaSmsReceiveHandler>(cdmaSmsReceiveRunner_, slotId_);
     if (cdmaSmsReceiveHandler_ == nullptr) {
-        HILOG_ERROR("failed to create CdmaSmsReceiveHandler");
+        TELEPHONY_LOGE("failed to create CdmaSmsReceiveHandler");
         return;
     }
 
-    gsmSmsReceiveHandler_->RegisterHandler();
+    gsmSmsReceiveHandler_->Init();
     cdmaSmsReceiveRunner_->Run();
     gsmSmsReceiveRunner_->Run();
 
-    HILOG_INFO("gsmSmsReceiveRunner_->Run().");
-    HILOG_INFO("cdmaSmsReceiveRunner_->Run().");
+    TELEPHONY_LOGI("gsmSmsReceiveRunner_->Run().");
+    TELEPHONY_LOGI("cdmaSmsReceiveRunner_->Run().");
 }
 
 void SmsReceiveManager::SetCdmaSender(const weak_ptr<SmsSender> &smsSender)
@@ -67,5 +69,5 @@ void SmsReceiveManager::SetCdmaSender(const weak_ptr<SmsSender> &smsSender)
         cdmaSmsReceiveHandler->SetCdmaSender(smsSender);
     }
 }
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS

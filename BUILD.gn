@@ -16,8 +16,11 @@ SOURCE_DIR = "//base/telephony/sms_mms"
 
 ohos_shared_library("tel_sms_mms") {
   sources = [
+    "$SOURCE_DIR/services/cdma/cdma_sms_message.cpp",
+    "$SOURCE_DIR/services/cdma/cdma_sms_pdu_codec.cpp",
     "$SOURCE_DIR/services/cdma/cdma_sms_receive_handler.cpp",
     "$SOURCE_DIR/services/cdma/cdma_sms_sender.cpp",
+    "$SOURCE_DIR/services/gsm/gsm_sms_cb_handler.cpp",
     "$SOURCE_DIR/services/gsm/gsm_sms_message.cpp",
     "$SOURCE_DIR/services/gsm/gsm_sms_param_codec.cpp",
     "$SOURCE_DIR/services/gsm/gsm_sms_receive_handler.cpp",
@@ -25,8 +28,10 @@ ohos_shared_library("tel_sms_mms") {
     "$SOURCE_DIR/services/gsm/gsm_sms_tpdu_codec.cpp",
     "$SOURCE_DIR/services/gsm/gsm_sms_udata_codec.cpp",
     "$SOURCE_DIR/services/sms_base_message.cpp",
+    "$SOURCE_DIR/services/sms_cb_message.cpp",
     "$SOURCE_DIR/services/sms_interface_manager.cpp",
     "$SOURCE_DIR/services/sms_interface_stub.cpp",
+    "$SOURCE_DIR/services/sms_misc_manager.cpp",
     "$SOURCE_DIR/services/sms_receive_handler.cpp",
     "$SOURCE_DIR/services/sms_receive_indexer.cpp",
     "$SOURCE_DIR/services/sms_receive_manager.cpp",
@@ -35,9 +40,11 @@ ohos_shared_library("tel_sms_mms") {
     "$SOURCE_DIR/services/sms_sender.cpp",
     "$SOURCE_DIR/services/sms_service.cpp",
     "$SOURCE_DIR/utils/msg_text_convert.cpp",
+    "$SOURCE_DIR/utils/sms_common_utils.cpp",
     "$SOURCE_DIR/utils/string_utils.cpp",
     "//base/telephony/core_service/interfaces/innerkits/sms_mms/proxy/sms_delivery_short_message_proxy.cpp",
     "//base/telephony/core_service/interfaces/innerkits/sms_mms/proxy/sms_send_message_proxy.cpp",
+    "//base/telephony/sms_mms/interfaces/kits/src/short_message.cpp",
   ]
 
   include_dirs = [
@@ -48,7 +55,6 @@ ohos_shared_library("tel_sms_mms") {
     "//third_party/glib/glib",
     "//third_party/glib",
     "//third_party/glib/gmodule",
-
     "//base/telephony/core_service/interfaces/innerkits/sms_mms/proxy",
     "//base/telephony/core_service/interfaces/innerkits/sms_mms/common",
     "//base/telephony/core_service/interfaces/innerkits/common",
@@ -57,17 +63,25 @@ ohos_shared_library("tel_sms_mms") {
 
   deps = [
     "//base/telephony/core_service:tel_core_service",
+    "//base/telephony/core_service/common:libtelephony_common",
     "//third_party/glib:glib_packages",
     "//utils/native/base:utils",
   ]
+
   external_deps = [
     "aafwk_standard:want",
     "appexecfwk_standard:libeventhandler",
     "ces_standard:cesfwk_innerkits",
     "ces_standard:cesfwk_services",
     "ipc:ipc_core",
+    "ril_adapter:hril",
     "safwk:system_ability_fwk",
     "samgr_L2:samgr_proxy",
+  ]
+
+  defines = [
+    "TELEPHONY_LOG_TAG = \"SMS_MMS\"",
+    "LOG_DOMAIN = 0xD002B01",
   ]
 
   if (is_standard_system) {

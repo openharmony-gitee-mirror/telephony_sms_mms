@@ -13,26 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef MSG_TEXT_CONVERT_H
 #define MSG_TEXT_CONVERT_H
+
 #include <map>
 #include <memory>
 #include "gsm_pdu_code_type.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 #define IN
 #define OUT
-#define MAX_DUMP_COLUMN 16
-#define GSM7_DEFLIST_LEN 128
 using WCHAR = unsigned long;
 using MSG_CHAR_TYPE_T = unsigned char;
 using MSG_LANGUAGE_ID_T = unsigned char;
 using msg_encode_type_t = unsigned char;
-#ifndef EOK
-#define EOK (0)
-#endif
 
-enum _MSG_CHAR_TYPE_E {
+enum MsgCharType {
     MSG_DEFAULT_CHAR = 0,
     MSG_GSM7EXT_CHAR,
     MSG_TURKISH_CHAR,
@@ -40,7 +38,7 @@ enum _MSG_CHAR_TYPE_E {
     MSG_PORTUGUESE_CHAR
 };
 
-enum _MSG_LANGUAGE_ID_E {
+enum MsgLanguageId {
     MSG_ID_RESERVED_LANG = 0,
     MSG_ID_TURKISH_LANG,
     MSG_ID_SPANISH_LANG,
@@ -57,13 +55,13 @@ enum _MSG_LANGUAGE_ID_E {
     MSG_ID_URDU_LANG,
 };
 
-typedef struct _MSG_LANG_INFO_S {
+using MsgLangInfo = struct {
     bool bSingleShift;
     bool bLockingShift;
 
     MSG_LANGUAGE_ID_T singleLang;
     MSG_LANGUAGE_ID_T lockingLang;
-} MSG_LANG_INFO_S;
+};
 
 static const WCHAR g_GSM7BitToUCS2[] = {
     /* @ */
@@ -231,16 +229,14 @@ static const WCHAR g_PortuLockingToUCS2[] = {
 class MsgTextConvert {
 public:
     static MsgTextConvert *Instance();
-
-    int ConvertUTF8ToGSM7bit(OUT unsigned char *(&pDestText), IN int maxLength, IN const unsigned char *(&pSrcText),
-        IN int srcTextLen, OUT MSG_LANGUAGE_ID_T *(&pLangId), OUT bool *(&bIncludeAbnormalChar));
+    int ConvertUTF8ToGSM7bit(OUT unsigned char *pDestText, IN int maxLength, IN const unsigned char *pSrcText,
+        IN int srcTextLen, OUT MSG_LANGUAGE_ID_T *pLangId, OUT bool *bIncludeAbnormalChar);
     int ConvertUTF8ToUCS2(
         OUT unsigned char *pDestText, IN int maxLength, IN const unsigned char *pSrcText, IN int srcTextLen);
     int ConvertUTF8ToAuto(OUT unsigned char *pDestText, IN int maxLength, IN const unsigned char *pSrcText,
-        IN int srcTextLen, OUT SMS_CODING_SCHEME_E *pCharType);
-
+        IN int srcTextLen, OUT SmsCodingScheme *pCharType);
     int ConvertGSM7bitToUTF8(OUT unsigned char *pDestText, IN int maxLength, IN const unsigned char *pSrcText,
-        IN int srcTextLen, const IN MSG_LANG_INFO_S *pLangInfo);
+        IN int srcTextLen, const IN MsgLangInfo *pLangInfo);
     int ConvertUCS2ToUTF8(
         OUT unsigned char *pDestText, IN int maxLength, IN const unsigned char *pSrcText, IN int srcTextLen);
     int ConvertEUCKRToUTF8(
@@ -251,7 +247,6 @@ public:
 private:
     MsgTextConvert();
     virtual ~MsgTextConvert();
-
     int ConvertUCS2ToGSM7bit(OUT unsigned char *pDestText, IN int maxLength, IN const unsigned char *pSrcText,
         IN int srcTextLen, OUT MSG_LANGUAGE_ID_T *pLangId, OUT bool *bIncludeAbnormalChar);
 #ifndef FEATURE_SMS_CDMA
@@ -263,8 +258,7 @@ private:
 #endif
 
     int ConvertGSM7bitToUCS2(OUT unsigned char *pDestText, IN int maxLength, IN const unsigned char *pSrcText,
-        IN int srcTextLen, const IN MSG_LANG_INFO_S *pLangInfo);
-
+        IN int srcTextLen, const IN MsgLangInfo *pLangInfo);
     void ConvertDumpTextToHex(const unsigned char *pText, int length);
     void InitExtCharList();
     void InitUCS2ToGSM7DefList();
@@ -275,16 +269,15 @@ private:
     void InitUCS2ToReplaceCharList();
 
     static std::shared_ptr<MsgTextConvert> instance_;
-
     std::map<unsigned short, unsigned char> extCharList_;
-    std::map<unsigned short, unsigned char> ucs2toGSM7DefList;
-    std::map<unsigned short, unsigned char> ucs2toGSM7ExtList;
-    std::map<unsigned short, unsigned char> ucs2toTurkishList;
-    std::map<unsigned short, unsigned char> ucs2toSpanishList;
-    std::map<unsigned short, unsigned char> ucs2toPortuList;
-
-    std::map<unsigned short, unsigned char> replaceCharList;
+    std::map<unsigned short, unsigned char> ucs2toGSM7DefList_;
+    std::map<unsigned short, unsigned char> ucs2toGSM7ExtList_;
+    std::map<unsigned short, unsigned char> ucs2toTurkishList_;
+    std::map<unsigned short, unsigned char> ucs2toSpanishList_;
+    std::map<unsigned short, unsigned char> ucs2toPortuList_;
+    std::map<unsigned short, unsigned char> replaceCharList_;
+    static constexpr uint8_t GSM7_DEFLIST_LEN = 128;
 };
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS
 #endif

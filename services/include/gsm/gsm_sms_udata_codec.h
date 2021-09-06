@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef GSM_SMS_UDCODEC_H
 #define GSM_SMS_UDCODEC_H
+
 #include "gsm_sms_param_codec.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 #define MAX_GSM_7BIT_DATA_LEN 160
 #define MAX_UCS2_DATA_LEN 140
 #define MAX_TPDU_DATA_LEN 255
@@ -29,13 +32,11 @@ public:
     GsmSmsUDataCodec() = default;
     virtual ~GsmSmsUDataCodec() = default;
     static int EncodeUserData(
-        const struct SmsUserData *(&pUserData), SMS_CODING_SCHEME_E CodingScheme, char *(&pEncodeData));
+        const struct SmsUserData *(&pUserData), SmsCodingScheme CodingScheme, char *(&pEncodeData));
     static int DecodeUserData(const unsigned char *pTpdu, const int tpduLen, bool bHeaderInd,
-        SMS_CODING_SCHEME_E CodingScheme, struct SmsUserData *pUserData);
+        SmsCodingScheme CodingScheme, struct SmsUserData *pUserData);
     static int DecodeUserData(const unsigned char *pTpdu, const int tpduLen, bool bHeaderInd,
-        SMS_CODING_SCHEME_E CodingScheme, struct SmsUserData *pUserData, struct SmsTpud *pTPUD);
-    static int Pack7bitChar(const unsigned char *pUserData, int dataLen, int fillBits, char *pPackData);
-    static int Unpack7bitChar(const unsigned char *pTpdu, unsigned char dataLen, int fillBits, char *pUnpackData);
+        SmsCodingScheme CodingScheme, struct SmsUserData *pUserData, struct SmsTpud *pTPUD);
 
 private:
     static int EncodeGSMData(const struct SmsUserData *pUserData, char *pEncodeData);
@@ -52,7 +53,8 @@ private:
     static int EncodeHeaderConcat(const struct SmsUDH header, char *pEncodeHeader);
     static int DecodeHeader(const unsigned char *pTpdu, struct SmsUDH *pHeader);
     static void DebugDecodeHeader(const struct SmsUDH *pHeader);
+    static void ResetUserData(struct SmsUserData &userData);
 };
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS
 #endif

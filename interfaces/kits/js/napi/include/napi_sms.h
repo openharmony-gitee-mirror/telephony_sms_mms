@@ -22,46 +22,48 @@
 
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "i_sms_service_interface.h"
+#include "base_context.h"
+#include "short_message.h"
+#include "core_manager.h"
+
 namespace OHOS {
-namespace TelephonyNapi {
-const int DEFAULT_ERROR = -1;
-const int RESOLVED = 1;
-const int REJECT = 0;
-const int NONE_PARAMTER = 0;
-const int ONE_PARAMTER = 1;
-const int TWO_PARAMTER = 2;
-const int THREE_PARAMTER = 3;
-const int FOUR_PARAMTER = 4;
-
-constexpr int32_t ZERO = 0;
-constexpr int32_t ONE = 1;
-constexpr int32_t TWO = 2;
-constexpr int32_t THREE = 3;
-constexpr size_t SIZE_T_ZERO = 0;
-
+namespace Telephony {
+const int32_t DEFAULT_ERROR = -1;
+const int32_t MESSAGE_PARAMETER_NOT_MATCH = 0;
+const int32_t TEXT_MESSAGE_PARAMETER_MATCH = 1;
+const int32_t RAW_DATA_MESSAGE_PARAMETER_MATCH = 2;
 constexpr int32_t MAX_TEXT_SHORT_MESSAGE_LENGTH = 4096;
-constexpr int32_t DEFALUT_PORT = 8888;
+constexpr int32_t DEFAULT_PORT = 8888;
 constexpr size_t BUFF_LENGTH = 31;
 constexpr int32_t PROPERTY_NAME_SIZE = 32;
+constexpr int32_t NORMAL_STRING_SIZE = 64;
 
-struct AsyncContext {
-    napi_env env;
-    napi_async_work work;
-    std::vector<unsigned char> pdu;
-    char specification[PROPERTY_NAME_SIZE];
-    size_t specificationLen;
-    napi_value value;
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    int status;
-};
+enum MessageStatus {
+    /**
+     * 未知状态
+     */
+    MESSAGE_UNKNOWN_STATUS = -1,
 
-struct TextMessageParameter {
-    int32_t slotId;
-    std::u16string destinationHost;
-    std::u16string serviceCenter;
-    napi_value contentValue;
-    napi_value object;
+    /**
+     * 已读
+     */
+    MESSAGE_HAVE_READ = ISmsServiceInterface::SIM_MESSAGE_STATUS_READ,
+
+    /**
+     * 未读
+     */
+    MESSAGE_UNREAD = ISmsServiceInterface::SIM_MESSAGE_STATUS_UNREAD,
+
+    /**
+     * 已发送
+     */
+    MESSAGE_HAS_BEEN_SENT = ISmsServiceInterface::SIM_MESSAGE_STATUS_SENT,
+
+    /**
+     * 未发送
+     */
+    MESSAGE_NOT_SENT = ISmsServiceInterface::SIM_MESSAGE_STATUS_UNSENT
 };
 
 enum ShortMessageClass {
@@ -99,6 +101,93 @@ enum SendSmsResult {
      */
     SEND_SMS_FAILURE_SERVICE_UNAVAILABLE = 3
 };
-} // namespace TelephonyNapi
+
+struct SendMessageContext {
+    int32_t slotId = CoreManager::DEFAULT_SLOT_ID;
+    std::u16string destinationHost = u"";
+    std::u16string serviceCenter = u"";
+    std::u16string textContent = u"";
+    std::vector<uint8_t> rawDataContent;
+    napi_ref thisVarRef = nullptr;
+    napi_async_work work = nullptr;
+    napi_ref sendCallbackRef = nullptr;
+    napi_ref deliveryCallbackRef = nullptr;
+    int32_t messageType = MESSAGE_PARAMETER_NOT_MATCH;
+    uint16_t destinationPort = 0;
+    int resolved = false;
+};
+
+struct CreateMessageContext : BaseContext {
+    std::vector<unsigned char> pdu;
+    std::string specification = "";
+    ShortMessage *shortMessage = nullptr;
+};
+
+struct SetDefaultSmsSlotIdContext : BaseContext {
+    int32_t slotId = CoreManager::DEFAULT_SLOT_ID;
+    bool setResult;
+};
+
+struct GetDefaultSmsSlotIdContext : BaseContext {
+    int32_t defaultSmsSlotId = CoreManager::DEFAULT_SLOT_ID;
+};
+
+struct SetSmscAddrContext : BaseContext {
+    int32_t slotId = CoreManager::DEFAULT_SLOT_ID;
+    std::string smscAddr = "";
+    bool setResult = false;
+};
+
+struct GetSmscAddrContext : BaseContext {
+    int32_t slotId = CoreManager::DEFAULT_SLOT_ID;
+    std::string smscAddr = "";
+};
+
+struct AddSimMessageContext : BaseContext {
+    int32_t slotId = CoreManager::DEFAULT_SLOT_ID;
+    std::string smsc = "";
+    std::string pdu = "";
+    enum MessageStatus status = MESSAGE_UNKNOWN_STATUS;
+    bool addResult = false;
+};
+
+struct DelSimMessageContext : BaseContext {
+    int32_t slotId = CoreManager::DEFAULT_SLOT_ID;
+    int32_t msgIndex = DEFAULT_ERROR;
+    bool deleteResult = false;
+};
+
+struct UpdateSimMessageContext : BaseContext {
+    int32_t slotId = CoreManager::DEFAULT_SLOT_ID;
+    int32_t msgIndex = DEFAULT_ERROR;
+    bool updateResult = false;
+    enum MessageStatus newStatus = MESSAGE_UNKNOWN_STATUS;
+    std::string pdu = "";
+    std::string smsc = "";
+};
+
+struct GetAllSimMessagesContext : BaseContext {
+    int32_t slotId = CoreManager::DEFAULT_SLOT_ID;
+    std::vector<ShortMessage> messageArray;
+};
+
+struct CBRangeConfigContext : BaseContext {
+    int32_t slotId = CoreManager::DEFAULT_SLOT_ID;
+    bool enable = false;
+    int32_t startMessageId = DEFAULT_ERROR;
+    int32_t endMessageId = DEFAULT_ERROR;
+    int32_t ranType = DEFAULT_ERROR;
+    bool setResult = false;
+};
+
+struct CBConfigContext : BaseContext {
+    int32_t slotId = CoreManager::DEFAULT_SLOT_ID;
+    bool enable = false;
+    int32_t startMessageId = DEFAULT_ERROR;
+    int32_t endMessageId = DEFAULT_ERROR;
+    int32_t ranType = DEFAULT_ERROR;
+    bool setResult = false;
+};
+} // namespace Telephony
 } // namespace OHOS
 #endif // NAPI_SMS_H

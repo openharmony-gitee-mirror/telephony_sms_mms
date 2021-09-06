@@ -12,15 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "gsm_sms_message.h"
+
 #include <cmath>
 #include <string>
 #include <vector>
+
 #include "securec.h"
-#include "sms_hilog_wrapper.h"
+
+#include "sms_common_utils.h"
 #include "string_utils.h"
+#include "telephony_log_wrapper.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 using namespace std;
 template<typename T>
 inline void UniquePtrDeleterOneDimension(T **(&ptr))
@@ -32,7 +38,7 @@ inline void UniquePtrDeleterOneDimension(T **(&ptr))
 }
 
 int GetSegmentSize(
-    SMS_CODING_SCHEME_E codingScheme, int dataLen, bool bPortNum, MSG_LANGUAGE_ID_T langId, int replyAddrLen)
+    SmsCodingScheme codingScheme, int dataLen, bool bPortNum, MSG_LANGUAGE_ID_T langId, int replyAddrLen)
 {
     int headerLen = 1;
     int concat = 5;
@@ -79,7 +85,7 @@ int GetSegmentSize(
     return segSize;
 }
 
-int GsmSmsMessage::CalcReplayEncodeAddress(const std::string &replyAddress)
+int GsmSmsMessage::CalcReplyEncodeAddress(const std::string &replyAddress)
 {
     int ret = 0;
     int addrLen = 0;
@@ -91,12 +97,12 @@ int GsmSmsMessage::CalcReplayEncodeAddress(const std::string &replyAddress)
         replyAddr.npi = SMS_NPI_ISDN;
         ret = memset_s(replyAddr.address, sizeof(replyAddr.address), 0x00, MAX_ADDRESS_LEN + 1);
         if (ret != EOK) {
-            HILOG_ERROR("CalcReplayEncodeAddress memset_s error!");
+            TELEPHONY_LOGE("CalcReplyEncodeAddress memset_s error!");
             return addrLen;
         }
         ret = memcpy_s(replyAddr.address, sizeof(replyAddr.address), replyAddress.c_str(), MAX_ADDRESS_LEN);
         if (ret != EOK) {
-            HILOG_ERROR("CalcReplayEncodeAddress memory_s error!");
+            TELEPHONY_LOGE("CalcReplyEncodeAddress memory_s error!");
             return addrLen;
         }
         addrLen = GsmSmsParamCodec::EncodeAddress(&replyAddr, &encodedAddr);
@@ -107,7 +113,7 @@ int GsmSmsMessage::CalcReplayEncodeAddress(const std::string &replyAddress)
     return addrLen;
 }
 
-int GsmSmsMessage::SetSmsTpduDesAddress(std::shared_ptr<struct SmsTpdu> &tPdu, const std::string &desAddr)
+int GsmSmsMessage::SetSmsTpduDestAddress(std::shared_ptr<struct SmsTpdu> &tPdu, const std::string &desAddr)
 {
     int ret = 0;
     int addLen = 0;
@@ -121,7 +127,7 @@ int GsmSmsMessage::SetSmsTpduDesAddress(std::shared_ptr<struct SmsTpdu> &tPdu, c
         ret = memcpy_s(tPdu->data.submit.destAddress.address, sizeof(tPdu->data.submit.destAddress.address),
             desAddr.c_str(), addLen);
         if (ret != EOK) {
-            HILOG_ERROR("SetSmsTpduDesAddress memcpy_s error!");
+            TELEPHONY_LOGE("SetSmsTpduDestAddress memcpy_s error!");
             return addLen;
         }
         tPdu->data.submit.destAddress.address[addLen] = '\0';
@@ -134,7 +140,7 @@ int GsmSmsMessage::SetSmsTpduDesAddress(std::shared_ptr<struct SmsTpdu> &tPdu, c
                 desAddr.c_str(), MAX_ADDRESS_LEN - 1);
         }
         if (ret != EOK) {
-            HILOG_ERROR("SetSmsTpduDesAddress memcpy_s error!");
+            TELEPHONY_LOGE("SetSmsTpduDestAddress memcpy_s error!");
             return addLen;
         }
         tPdu->data.submit.destAddress.address[MAX_ADDRESS_LEN] = '\0';
@@ -142,7 +148,7 @@ int GsmSmsMessage::SetSmsTpduDesAddress(std::shared_ptr<struct SmsTpdu> &tPdu, c
     return addLen;
 }
 
-int GsmSmsMessage::SetHeaderLang(int index, const SMS_CODING_SCHEME_E codingType, const MSG_LANGUAGE_ID_T langId)
+int GsmSmsMessage::SetHeaderLang(int index, const SmsCodingScheme codingType, const MSG_LANGUAGE_ID_T langId)
 {
     int ret = 0;
     if (smsTpdu_ == nullptr) {
@@ -189,11 +195,11 @@ int GsmSmsMessage::SetHeaderConcat(int index, const SmsConcat &concat)
     return ret;
 }
 
-int GsmSmsMessage::SetHeaderReplay(int index)
+int GsmSmsMessage::SetHeaderReply(int index)
 {
     int ret = 0;
-    std::string replay = GetReplyAddress();
-    if (smsTpdu_ == nullptr && replay.length() <= 0) {
+    std::string reply = GetReplyAddress();
+    if (smsTpdu_ == nullptr && reply.length() <= 0) {
         return ret;
     }
     switch (smsTpdu_->tpduType) {
@@ -206,17 +212,18 @@ int GsmSmsMessage::SetHeaderReplay(int index)
                 sizeof(smsTpdu_->data.submit.userData.header[index].udh.alternateAddress.address), 0x00,
                 MAX_ADDRESS_LEN + 1);
             if (ret != EOK) {
-                HILOG_ERROR("SetHeaderReplay memset_s error!");
+                TELEPHONY_LOGE("SetHeaderReply memset_s error!");
                 return ret;
             }
             ret = memcpy_s(smsTpdu_->data.submit.userData.header[index].udh.alternateAddress.address,
-                sizeof(smsTpdu_->data.submit.userData.header[index].udh.alternateAddress.address), replay.c_str(),
-                replay.length());
+                sizeof(smsTpdu_->data.submit.userData.header[index].udh.alternateAddress.address), reply.c_str(),
+                reply.length());
             if (ret != EOK) {
-                HILOG_ERROR("SetHeaderReplay memcpy_s error!");
+                TELEPHONY_LOGE("SetHeaderReply memcpy_s error!");
                 return ret;
             }
-        } break;
+            break;
+        }
         default:
             break;
     }
@@ -224,13 +231,13 @@ int GsmSmsMessage::SetHeaderReplay(int index)
 }
 
 int GsmSmsMessage::GetCodeLen(unsigned char (&decodeData)[(MAX_GSM_7BIT_DATA_LEN * MAX_SEGMENT_NUM) + 1],
-    SMS_CODING_SCHEME_E &codingType, std::string &msgText, bool &bAbnormal, MSG_LANGUAGE_ID_T &langId)
+    SmsCodingScheme &codingType, std::string &msgText, bool &bAbnormal, MSG_LANGUAGE_ID_T &langId)
 {
     int dataLen = msgText.length();
     int encodeLen = 0;
     MsgTextConvert *textCvt = MsgTextConvert::Instance();
     if (textCvt == nullptr) {
-        HILOG_ERROR("MsgTextConvert Instance is nullptr");
+        TELEPHONY_LOGE("MsgTextConvert Instance is nullptr");
         return encodeLen;
     }
     switch (codingType) {
@@ -245,7 +252,7 @@ int GsmSmsMessage::GetCodeLen(unsigned char (&decodeData)[(MAX_GSM_7BIT_DATA_LEN
         }
         case SMS_CODING_8BIT:
             if (memcpy_s(decodeData, sizeof(decodeData), msgText.c_str(), dataLen) != EOK) {
-                HILOG_ERROR("SplitMessage SMS_CHARSET_8BIT memcpy_s error!");
+                TELEPHONY_LOGE("SplitMessage SMS_CHARSET_8BIT memcpy_s error!");
                 return encodeLen;
             }
             encodeLen = dataLen;
@@ -256,7 +263,7 @@ int GsmSmsMessage::GetCodeLen(unsigned char (&decodeData)[(MAX_GSM_7BIT_DATA_LEN
             break;
         case SMS_CODING_AUTO:
         default:
-            SMS_CODING_SCHEME_E encodeType = SMS_CODING_AUTO;
+            SmsCodingScheme encodeType = SMS_CODING_AUTO;
             encodeLen = textCvt->ConvertUTF8ToAuto(decodeData, (MAX_GSM_7BIT_DATA_LEN * MAX_SEGMENT_NUM) + 1,
                 (unsigned char *)msgText.c_str(), (int)dataLen, &encodeType);
             codingType = encodeType;
@@ -265,8 +272,8 @@ int GsmSmsMessage::GetCodeLen(unsigned char (&decodeData)[(MAX_GSM_7BIT_DATA_LEN
     return encodeLen;
 }
 
-void GsmSmsMessage::SplitMessage(std::vector<struct SpiltInfo> &splitResult, const std::string &context,
-    bool user7bitEncode, SMS_CODING_SCHEME_E &codingType)
+void GsmSmsMessage::SplitMessage(std::vector<struct SplitInfo> &splitResult, const std::string &context,
+    bool user7bitEncode, SmsCodingScheme &codingType)
 {
     int segCount = 0;
     int encodeLen = 0;
@@ -283,11 +290,11 @@ void GsmSmsMessage::SplitMessage(std::vector<struct SpiltInfo> &splitResult, con
     const int bufSize = (MAX_GSM_7BIT_DATA_LEN * MAX_SEGMENT_NUM) + 1;
     unsigned char decodeData[bufSize];
     if (memset_s(decodeData, sizeof(decodeData), 0x00, sizeof(decodeData)) != EOK) {
-        HILOG_ERROR("SplitMessage memset_s error!");
+        TELEPHONY_LOGE("SplitMessage memset_s error!");
         return;
     }
     encodeLen = GetCodeLen(decodeData, codingType, msgText, bAbnormal, langId);
-    HILOG_INFO("encodeLen = %{public}d\r\n", encodeLen);
+    TELEPHONY_LOGI("encodeLen = %{public}d\r\n", encodeLen);
     if (encodeLen <= 0) {
         return;
     }
@@ -299,9 +306,9 @@ void GsmSmsMessage::SplitMessage(std::vector<struct SpiltInfo> &splitResult, con
     }
     for (int i = 0; i < segCount; i++) {
         int userDataLen = 0;
-        struct SpiltInfo spiltInfo;
-        spiltInfo.langId = langId;
-        spiltInfo.encodeType = codingType;
+        struct SplitInfo splitInfo;
+        splitInfo.langId = langId;
+        splitInfo.encodeType = codingType;
         uint8_t textData[TAPI_TEXT_SIZE_MAX + 1];
         (void)memset_s(textData, sizeof(textData), 0x00, sizeof(textData));
         if ((i + 1) == segCount) {
@@ -309,13 +316,13 @@ void GsmSmsMessage::SplitMessage(std::vector<struct SpiltInfo> &splitResult, con
         } else {
             userDataLen = segSize;
         }
-        spiltInfo.encodeData = std::vector<uint8_t>(&decodeData[index], &decodeData[index] + userDataLen);
-        splitResult.push_back(spiltInfo);
+        splitInfo.encodeData = std::vector<uint8_t>(&decodeData[index], &decodeData[index] + userDataLen);
+        splitResult.push_back(splitInfo);
         index += segSize;
     }
 }
 
-void GsmSmsMessage::CreateDefaultSubmit(bool bStatusReport, const SMS_CODING_SCHEME_E codingScheme)
+void GsmSmsMessage::CreateDefaultSubmit(bool bStatusReport, const SmsCodingScheme codingScheme)
 {
     smsTpdu_ = std::make_shared<struct SmsTpdu>();
     smsTpdu_->tpduType = SMS_TPDU_SUBMIT;
@@ -325,7 +332,7 @@ void GsmSmsMessage::CreateDefaultSubmit(bool bStatusReport, const SMS_CODING_SCH
     smsTpdu_->data.submit.bReplyPath = false;
     smsTpdu_->data.submit.msgRef = 0;
     smsTpdu_->data.submit.dcs.bCompressed = false;
-    smsTpdu_->data.submit.dcs.msgClass = SMS_MSG_CLASS_E::SMS_CLASS_UNKNOWN;
+    smsTpdu_->data.submit.dcs.msgClass = SmsMessageClass::SMS_CLASS_UNKNOWN;
     smsTpdu_->data.submit.dcs.codingGroup = SMS_GENERAL_GROUP;
     smsTpdu_->data.submit.dcs.codingScheme = codingScheme;
     smsTpdu_->data.submit.pid = SMS_NORMAL_PID;
@@ -334,13 +341,13 @@ void GsmSmsMessage::CreateDefaultSubmit(bool bStatusReport, const SMS_CODING_SCH
 
 std::shared_ptr<struct SmsTpdu> GsmSmsMessage::CreateDefaultSubmitSmsTpdu(const std::string &dest,
     const std::string &sc, const std::string &text, bool bStatusReport,
-    const SMS_CODING_SCHEME_E codingScheme = SMS_CODING_7BIT)
+    const SmsCodingScheme codingScheme = SMS_CODING_7BIT)
 {
     SetFullText(text);
-    SetScAddress(sc);
+    SetSmscAddr(sc);
     SetDestAddress(dest);
     CreateDefaultSubmit(bStatusReport, codingScheme);
-    SetSmsTpduDesAddress(smsTpdu_, dest);
+    SetSmsTpduDestAddress(smsTpdu_, dest);
     return smsTpdu_;
 }
 
@@ -348,44 +355,36 @@ std::shared_ptr<struct SmsTpdu> GsmSmsMessage::CreateDataSubmitSmsTpdu(const std
     const std::string scAddr, int32_t port, const uint8_t *data, uint32_t dataLen, uint16_t msgRef8bit,
     bool bStatusReport)
 {
-    SetScAddress(scAddr);
+    int headerCnt = 0;
+    SetSmscAddr(scAddr);
     SetDestAddress(desAddr);
     CreateDefaultSubmit(bStatusReport, SMS_CODING_7BIT);
-    SetSmsTpduDesAddress(smsTpdu_, desAddr);
-    int endcodeLen = 0;
-    bool bAbnormal = false;
-    MsgTextConvert *textCvt = MsgTextConvert::Instance();
-    if (textCvt == nullptr) {
+    SetSmsTpduDestAddress(smsTpdu_, desAddr);
+    if (smsTpdu_ == nullptr) {
+        TELEPHONY_LOGE("smsTpdu_ is nullptr!");
         return nullptr;
     }
-    MSG_LANGUAGE_ID_T langId = MSG_ID_RESERVED_LANG;
-    SMS_CODING_SCHEME_E pCodingType = SMS_CODING_7BIT;
-    const int bufSize = (MAX_GSM_7BIT_DATA_LEN * MAX_SEGMENT_NUM) + 1;
-    unsigned char encodeData[bufSize];
-    if (memset_s(encodeData, sizeof(encodeData), 0x00, sizeof(encodeData)) != EOK) {
-        return nullptr;
-    }
-    const unsigned char *pMsgText = (const unsigned char *)data;
-    unsigned char *pDestText = encodeData;
-    MSG_LANGUAGE_ID_T *pLangId = &langId;
-    bool *pIncludeAbnormalChar = &bAbnormal;
-    endcodeLen =
-        textCvt->ConvertUTF8ToGSM7bit(pDestText, bufSize, pMsgText, (int)dataLen, pLangId, pIncludeAbnormalChar);
-    int segSize = 0;
-    segSize = GetSegmentSize(pCodingType, endcodeLen, false, langId, MAX_ADD_PARAM_LEN);
-    if (segSize != 1 || smsTpdu_ == nullptr) {
-        return nullptr;
-    }
-    int headerCnt = 0;
     if (memset_s(smsTpdu_->data.submit.userData.data, sizeof(smsTpdu_->data.submit.userData.data), 0x00,
         sizeof(smsTpdu_->data.submit.userData.data)) != EOK) {
+        TELEPHONY_LOGE("memset_s return EFAIL!");
         return nullptr;
     }
-    if (memcpy_s(smsTpdu_->data.submit.userData.data, sizeof(smsTpdu_->data.submit.userData.data), encodeData,
-        endcodeLen) != EOK) {
-        return nullptr;
+    if (dataLen > sizeof(smsTpdu_->data.submit.userData.data)) {
+        if (memcpy_s(smsTpdu_->data.submit.userData.data, sizeof(smsTpdu_->data.submit.userData.data), data,
+            sizeof(smsTpdu_->data.submit.userData.data)) != EOK) {
+            TELEPHONY_LOGE("memcpy_s return EFAIL!");
+            return nullptr;
+        }
+    } else {
+        if (memcpy_s(smsTpdu_->data.submit.userData.data, sizeof(smsTpdu_->data.submit.userData.data), data,
+            dataLen) != EOK) {
+            TELEPHONY_LOGE("memcpy_s return EFAIL!");
+            return nullptr;
+        }
     }
-    smsTpdu_->data.submit.userData.data[endcodeLen] = 0;
+    MSG_LANGUAGE_ID_T langId = MSG_ID_RESERVED_LANG;
+    SmsCodingScheme pCodingType = SMS_CODING_8BIT;
+    smsTpdu_->data.submit.userData.data[dataLen] = 0;
     smsTpdu_->data.submit.msgRef = msgRef8bit;
     /* Set User Data Header Port Information */
     smsTpdu_->data.submit.userData.header[headerCnt].udhType = SMS_UDH_APP_PORT_16BIT;
@@ -393,7 +392,7 @@ std::shared_ptr<struct SmsTpdu> GsmSmsMessage::CreateDataSubmitSmsTpdu(const std
     smsTpdu_->data.submit.userData.header[headerCnt].udh.appPort16bit.originPort = 0;
     headerCnt++;
     /* Set User Data Header for Alternate Reply Address */
-    headerCnt += SetHeaderReplay(headerCnt);
+    headerCnt += SetHeaderReply(headerCnt);
     /* Set User Data Header for National Language Single Shift */
     headerCnt += SetHeaderLang(headerCnt, pCodingType, langId);
     smsTpdu_->data.submit.userData.headerCnt = headerCnt;
@@ -412,12 +411,12 @@ std::shared_ptr<struct EncodeInfo> GsmSmsMessage::GetSubmitEncodeInfo(const std:
         struct SmsAddress pAddress;
         ret = memset_s(&pAddress.address, sizeof(pAddress.address), 0x00, sizeof(pAddress.address));
         if (ret != EOK) {
-            HILOG_ERROR("GetSubmitEncodeInfo memset_s error!");
+            TELEPHONY_LOGE("GetSubmitEncodeInfo memset_s error!");
             return nullptr;
         }
         ret = memcpy_s(&pAddress.address, sizeof(pAddress.address), sc.data(), sc.length());
         if (ret != EOK) {
-            HILOG_ERROR("GetSubmitEncodeInfo memcpy_s error!");
+            TELEPHONY_LOGE("GetSubmitEncodeInfo memcpy_s error!");
             return nullptr;
         }
         pAddress.address[sc.length()] = '\0';
@@ -434,12 +433,12 @@ std::shared_ptr<struct EncodeInfo> GsmSmsMessage::GetSubmitEncodeInfo(const std:
     if (bufLen > 0 && info != nullptr) {
         ret = memcpy_s(info->smcaData_, sizeof(info->smcaData_), encodeSmscAddr, encodeSmscLen);
         if (ret != EOK) {
-            HILOG_ERROR("GetSubmitEncodeInfo encodeSmscAddr memcpy_s error!");
+            TELEPHONY_LOGE("GetSubmitEncodeInfo encodeSmscAddr memcpy_s error!");
             return nullptr;
         }
         ret = memcpy_s(info->tpduData_, sizeof(info->tpduData_), tpduBuf, bufLen);
         if (ret != EOK) {
-            HILOG_ERROR("GetSubmitEncodeInfo memcpy_s error!");
+            TELEPHONY_LOGE("GetSubmitEncodeInfo memcpy_s error!");
             return nullptr;
         }
         info->smcaLen = encodeSmscLen;
@@ -449,7 +448,7 @@ std::shared_ptr<struct EncodeInfo> GsmSmsMessage::GetSubmitEncodeInfo(const std:
     return info;
 }
 
-std::shared_ptr<struct SmsTpdu> GsmSmsMessage::GreateDeliverSmsTpdu()
+std::shared_ptr<struct SmsTpdu> GsmSmsMessage::CreateDeliverSmsTpdu()
 {
     smsTpdu_ = std::make_shared<struct SmsTpdu>();
     smsTpdu_->tpduType = SMS_TPDU_DELIVER;
@@ -457,7 +456,7 @@ std::shared_ptr<struct SmsTpdu> GsmSmsMessage::GreateDeliverSmsTpdu()
     return smsTpdu_;
 }
 
-std::shared_ptr<struct SmsTpdu> GsmSmsMessage::GreateDeliverReportSmsTpdu()
+std::shared_ptr<struct SmsTpdu> GsmSmsMessage::CreateDeliverReportSmsTpdu()
 {
     smsTpdu_ = std::make_shared<struct SmsTpdu>();
     smsTpdu_->tpduType = SMS_TPDU_DELIVER_REP;
@@ -466,7 +465,7 @@ std::shared_ptr<struct SmsTpdu> GsmSmsMessage::GreateDeliverReportSmsTpdu()
     return smsTpdu_;
 }
 
-std::shared_ptr<struct SmsTpdu> GsmSmsMessage::GreateStatusReportSmsTpdu()
+std::shared_ptr<struct SmsTpdu> GsmSmsMessage::CreateStatusReportSmsTpdu()
 {
     smsTpdu_ = std::make_shared<struct SmsTpdu>();
     smsTpdu_->tpduType = SMS_TPDU_STATUS_REP;
@@ -489,61 +488,93 @@ std::shared_ptr<GsmSmsMessage> GsmSmsMessage::CreateMessage(const std::string &p
 bool GsmSmsMessage::PduAnalysis(const string &pdu)
 {
     bool result = true;
-    if (smsTpdu_ == nullptr || pdu.empty()) {
-        HILOG_ERROR("GsmSmsMessage::PduAnalysis smsTpdu is null");
+    if (smsTpdu_ == nullptr || pdu.empty() || pdu.length() > MAX_TPDU_DATA_LEN) {
+        TELEPHONY_LOGE("GsmSmsMessage::PduAnalysis smsTpdu is null");
         return false;
     }
     struct SmsAddress smsc;
     if (memset_s(&smsc, sizeof(struct SmsAddress), 0x00, sizeof(struct SmsAddress)) != EOK) {
-        HILOG_ERROR("PduAnalysis memset_s error!");
+        TELEPHONY_LOGE("PduAnalysis memset_s error!");
         return false;
     }
-    int smscLen = GsmSmsParamCodec::DecodeSMSC((const unsigned char *)pdu.c_str(), smsc);
+    int smscLen = GsmSmsParamCodec::DecodeSMSC((const unsigned char *)pdu.c_str(), pdu.length(), smsc);
     if (smscLen > 0) {
         scAddress_ = smsc.address;
     }
-    int decodeLen = GsmSmsTpduCodec::DecodeTpdu(
-        (const unsigned char *)pdu.c_str() + smscLen, pdu.length() - smscLen, smsTpdu_.get());
+    if (smscLen >= static_cast<int>(pdu.length())) {
+        TELEPHONY_LOGE("PduAnalysis pdu is invalid!");
+        return false;
+    }
+
+    unsigned char tempPdu[TAPI_TEXT_SIZE_MAX + 1] = {0};
+    if (memcpy_s(tempPdu, sizeof(tempPdu), (pdu.c_str() + smscLen), (pdu.length() - smscLen)) != EOK) {
+        return false;
+    }
+    int decodeLen = GsmSmsTpduCodec::DecodeTpdu(tempPdu, sizeof(tempPdu), smsTpdu_.get());
     if (decodeLen <= 0) {
+        TELEPHONY_LOGE("decodeLen <= 0.");
         return false;
     }
     switch (smsTpdu_->tpduType) {
         case SMS_TPDU_DELIVER:
-            protocolId_ = (int)(smsTpdu_->data.deliver.pid);
-            hasReplayPath_ = smsTpdu_->data.deliver.bReplyPath;
-            bMoreMsg_ = smsTpdu_->data.deliver.bMoreMsg;
-
-            bStatusRoretMessage_ = smsTpdu_->data.deliver.bStatusReport;
-            bMoreMsg_ = smsTpdu_->data.deliver.bMoreMsg;
-            bHeaderInd_ = smsTpdu_->data.deliver.bHeaderInd;
-            originatingAddress_ = smsTpdu_->data.deliver.originAddress.address;
-            headerCnt_ = smsTpdu_->data.deliver.userData.headerCnt;
-            scTimestamp_ = GsmSmsParamCodec::ConvertTime(&(smsTpdu_->data.deliver.timeStamp));
-            ConvertMessageDcs();
-            ConvertUserData();
+            AnalysisMsgDeliver(smsTpdu_->data.deliver);
             break;
         case SMS_TPDU_STATUS_REP:
-            protocolId_ = (int)(smsTpdu_->data.statusRep.pid);
-            msgRef_ = smsTpdu_->data.statusRep.msgRef;
-            bMoreMsg_ = smsTpdu_->data.statusRep.bMoreMsg;
-            bStatusRoretMessage_ = smsTpdu_->data.statusRep.bStatusReport;
-            bHeaderInd_ = smsTpdu_->data.statusRep.bHeaderInd;
-            status_ = smsTpdu_->data.statusRep.status;
-            scTimestamp_ = GsmSmsParamCodec::ConvertTime(&(smsTpdu_->data.statusRep.timeStamp));
-            ConvertMessageDcs();
-            ConvertUserData();
+            AnalysisMsgStatusReport(smsTpdu_->data.statusRep);
+            break;
+        case SMS_TPDU_SUBMIT:
+            AnalysisMsgSubmit(smsTpdu_->data.submit);
             break;
         default:
+            TELEPHONY_LOGE("tpduType is unknown.");
             result = false;
             break;
     }
     return result;
 }
 
+void GsmSmsMessage::AnalysisMsgDeliver(const SmsDeliver &deliver)
+{
+    protocolId_ = (int)(deliver.pid);
+    hasReplyPath_ = deliver.bReplyPath;
+    bStatusReportMessage_ = deliver.bStatusReport;
+    bMoreMsg_ = deliver.bMoreMsg;
+    bHeaderInd_ = deliver.bHeaderInd;
+    originatingAddress_ = deliver.originAddress.address;
+    headerCnt_ = deliver.userData.headerCnt;
+    ConvertMsgTimeStamp(deliver.timeStamp);
+    ConvertMessageDcs();
+    ConvertUserData();
+}
+
+void GsmSmsMessage::AnalysisMsgStatusReport(const SmsStatusReport &statusRep)
+{
+    protocolId_ = (int)(statusRep.pid);
+    msgRef_ = statusRep.msgRef;
+    bMoreMsg_ = statusRep.bMoreMsg;
+    bStatusReportMessage_ = statusRep.bStatusReport;
+    bHeaderInd_ = statusRep.bHeaderInd;
+    status_ = statusRep.status;
+    ConvertMsgTimeStamp(statusRep.timeStamp);
+    ConvertMessageDcs();
+    ConvertUserData();
+}
+
+void GsmSmsMessage::AnalysisMsgSubmit(const SmsSubmit &submit)
+{
+    protocolId_ = static_cast<int>(submit.pid);
+    msgRef_ = submit.msgRef;
+    bStatusReportMessage_ = submit.bStatusReport;
+    bHeaderInd_ = submit.bHeaderInd;
+    ConvertMsgTimeStamp(submit.validityPeriod);
+    ConvertMessageDcs();
+    ConvertUserData();
+}
+
 void GsmSmsMessage::ConvertMessageDcs()
 {
     if (smsTpdu_ == nullptr) {
-        HILOG_ERROR("GsmSmsMessage::ConvertMessageDcs smsTpdu is null");
+        TELEPHONY_LOGE("GsmSmsMessage::ConvertMessageDcs smsTpdu is null");
         return;
     }
     switch (smsTpdu_->tpduType) {
@@ -562,6 +593,15 @@ void GsmSmsMessage::ConvertMessageDcs()
             codingGroup_ = smsTpdu_->data.statusRep.dcs.codingGroup;
             bIndActive_ = smsTpdu_->data.statusRep.dcs.bIndActive;
             ConvertMessageClass(smsTpdu_->data.statusRep.dcs.msgClass);
+            break;
+        case SMS_TPDU_SUBMIT:
+            bCompressed_ = smsTpdu_->data.submit.dcs.bCompressed;
+            codingScheme_ = smsTpdu_->data.submit.dcs.codingScheme;
+            codingGroup_ = smsTpdu_->data.submit.dcs.codingGroup;
+            bIndActive_ = smsTpdu_->data.submit.dcs.bIndActive;
+            bMwi_ = smsTpdu_->data.submit.dcs.bMWI;
+            bMwiSense_ = smsTpdu_->data.submit.dcs.bIndActive;
+            ConvertMessageClass(smsTpdu_->data.submit.dcs.msgClass);
             break;
         default:
             break;
@@ -590,6 +630,11 @@ void GsmSmsMessage::ConvertUserData()
             ret = memcpy_s(&smsUserData_, sizeof(struct SmsUserData), &(smsTpdu_->data.statusRep.userData),
                 sizeof(struct SmsUserData));
             break;
+        case SMS_TPDU_SUBMIT:
+            headerDataLen_ = smsTpdu_->data.submit.userData.length;
+            ret = memcpy_s(
+                &smsUserData_, sizeof(SmsUserData), &(smsTpdu_->data.submit.userData), sizeof(SmsUserData));
+            break;
         default:
             break;
     }
@@ -603,7 +648,7 @@ void GsmSmsMessage::ConvertUserData()
         }
         unsigned char buff[MAX_MSG_TEXT_LEN + 1] = {0};
         if (codingScheme_ == SMS_CODING_7BIT) {
-            MSG_LANG_INFO_S langInfo = {
+            MsgLangInfo langInfo = {
                 0,
             };
             langInfo.bSingleShift = false;
@@ -652,7 +697,7 @@ uint16_t GsmSmsMessage::GetDestPort()
 {
     std::shared_ptr<SmsAppPortAddr> portAddress = GetPortAddress();
     if (portAddress == nullptr) {
-        return defaultPort_;
+        return DEFAULT_PORT;
     }
     destPort_ = static_cast<uint16_t>(portAddress->destPort);
     return destPort_;
@@ -675,8 +720,17 @@ bool GsmSmsMessage::GetIsTypeZeroInd() const
 
 bool GsmSmsMessage::GetIsSIMDataTypeDownload() const
 {
-    int procotolId = GetProtocolId();
-    return GetMessageClass() == SMS_SIM_MESSAGE && (procotolId == 0x7f || procotolId == 0x7c);
+    int protocolId = GetProtocolId();
+    return GetMessageClass() == SMS_SIM_MESSAGE && (protocolId == 0x7f || protocolId == 0x7c);
+}
+
+void GsmSmsMessage::ConvertMsgTimeStamp(const struct SmsTimeStamp &times)
+{
+    if (times.format == SMS_TIME_ABSOLUTE) {
+        scTimestamp_ = SmsCommonUtils::ConvertTime(times.time.absolute);
+    } else {
+        scTimestamp_ = time(nullptr);
+    }
 }
 
 // from 3GPP TS 23.040 V5.1.0 9.2.3.24.2 Special SMS Message Indication
@@ -684,19 +738,19 @@ bool GsmSmsMessage::IsSpecialMessage() const
 {
     bool result = false;
     if (GetIsTypeZeroInd()) {
-        HILOG_DEBUG("GsmSmsMessage:: IsTypeZeroInd");
+        TELEPHONY_LOGD("GsmSmsMessage:: IsTypeZeroInd");
         result = true;
     }
     // 9.2.3.9	TP Protocol Identifier (TP PID)
     if (GetIsSIMDataTypeDownload()) {
-        HILOG_DEBUG("GsmSmsMessage:: GetIsSIMDataTypeDownload");
+        TELEPHONY_LOGD("GsmSmsMessage:: GetIsSIMDataTypeDownload");
         result = true;
     }
     if (IsMwiSet() || IsMwiClear()) {
-        HILOG_DEBUG("GsmSmsMessage::Mwi Message");
+        TELEPHONY_LOGD("GsmSmsMessage::Mwi Message");
         result = true;
     }
     return result;
 }
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS

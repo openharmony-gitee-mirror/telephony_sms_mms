@@ -12,12 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "delivery_call_back.h"
+
 #include <iostream>
+
 namespace OHOS {
-int32_t DeliveryCallBack::OnSmsDeliveryResult(const std::u16string pdu)
+namespace Telephony {
+void DeliveryCallBack::OnSmsDeliveryResult(const std::u16string pdu)
 {
     std::cout << "DeliveryCallBack::OnSmsDeliveryResult " << std::endl;
-    return -1;
 }
+} // namespace Telephony
 } // namespace OHOS

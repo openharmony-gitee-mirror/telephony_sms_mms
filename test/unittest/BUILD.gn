@@ -22,6 +22,7 @@ ohos_executable("tel_sms_mms_test") {
     "gsm_sms_sender_test.cpp",
     "short_message_test.cpp",
     "sms_broadcast_subscriber.cpp",
+    "sms_cb_message_test.cpp",
     "sms_mms_test.cpp",
   ]
 
@@ -30,7 +31,7 @@ ohos_executable("tel_sms_mms_test") {
     "//base/telephony/sms_mms/services/include/cdma",
     "//base/telephony/sms_mms/services/include/gsm",
     "//base/telephony/sms_mms/utils",
-
+    "//base/telephony/ril_adapter/interfaces/innerkits",
     "//base/telephony/core_service/interfaces/innerkits/sms_mms/proxy",
     "//base/telephony/core_service/interfaces/innerkits/common",
     "//base/telephony/core_service/interfaces/kits/include/",
@@ -39,6 +40,7 @@ ohos_executable("tel_sms_mms_test") {
 
   deps = [
     "//base/telephony/core_service:tel_core_service",
+    "//base/telephony/core_service/common:libtelephony_common",
     "//base/telephony/sms_mms:tel_sms_mms",
     "//utils/native/base:utils",
   ]
@@ -50,6 +52,11 @@ ohos_executable("tel_sms_mms_test") {
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr_L2:samgr_proxy",
+  ]
+
+  defines = [
+    "TELEPHONY_LOG_TAG = \"SMS_MMS_TEST\"",
+    "LOG_DOMAIN = 0xD002B01",
   ]
 
   if (is_standard_system) {

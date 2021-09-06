@@ -12,50 +12,83 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "gsm_sms_receive_handler.h"
+
 #include <map>
+
 #include "gsm_sms_message.h"
 #include "sms_base_message.h"
-#include "sms_hilog_wrapper.h"
 #include "sms_receive_indexer.h"
 #include "string_utils.h"
+#include "telephony_log_wrapper.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 using namespace std;
 GsmSmsReceiveHandler::GsmSmsReceiveHandler(const shared_ptr<AppExecFwk::EventRunner> &runner, int32_t slotId)
     : SmsReceiveHandler(runner, slotId)
 {}
 
-GsmSmsReceiveHandler::~GsmSmsReceiveHandler() {}
-
-void GsmSmsReceiveHandler::RegisterHandler()
+GsmSmsReceiveHandler::~GsmSmsReceiveHandler()
 {
-    rilManager_ = PhoneManager ::GetInstance().phone_[1]->rilManager_;
-    if (rilManager_ != nullptr) {
-        PhoneManager ::GetInstance().phone_[1]->rilManager_->RegisterPhoneNotify(
-            shared_from_this(), ObserverHandler::RADIO_GSM_SMS, nullptr);
-        HILOG_DEBUG("SmsReceiveHandler::RegisterHandler::slotid= %{public}d", slotId_);
+    UnRegisterHandler();
+}
+
+void GsmSmsReceiveHandler::Init()
+{
+    if (!RegisterHandler()) {
+        TELEPHONY_LOGI("GsmSmsSender::Init Register RADIO_SMS_STATUS fail.");
     }
+    smsCbRunner_ = AppExecFwk::EventRunner::Create("GsmSmsCbHandler" + to_string(slotId_));
+    if (smsCbRunner_ == nullptr) {
+        TELEPHONY_LOGE("failed to create GsmSmsCbHandler");
+        return;
+    }
+    smsCbHandler_ = std::make_shared<GsmSmsCbHandler>(smsCbRunner_, slotId_);
+    if (smsCbHandler_ == nullptr) {
+        TELEPHONY_LOGE("failed to create GsmSmsCbHandler");
+        return;
+    }
+    smsCbHandler_->Init();
+    smsCbRunner_->Run();
+    TELEPHONY_LOGI("smsCbHandler_->Run().");
+}
+
+bool GsmSmsReceiveHandler::RegisterHandler()
+{
+    bool ret = false;
+    std::shared_ptr<Core> core = GetCore();
+    if (core != nullptr) {
+        TELEPHONY_LOGI("GsmSmsReceiveHandler::RegisteHandler Register RADIO_GSM_SMS ok.");
+        core->RegisterPhoneNotify(shared_from_this(), ObserverHandler::RADIO_GSM_SMS, nullptr);
+        ret = true;
+    }
+    return ret;
 }
 
 void GsmSmsReceiveHandler::UnRegisterHandler()
 {
-    if (rilManager_ != nullptr) {
-        HILOG_DEBUG("SmsReceiveHandler::UnRegisterHandler::slotid= %{public}d", slotId_);
-        rilManager_->UnRegisterPhoneNotify(ObserverHandler::RADIO_GSM_SMS);
+    std::shared_ptr<Core> core = GetCore();
+    if (core != nullptr) {
+        TELEPHONY_LOGD("SmsReceiveHandler::UnRegisterHandler::slotId= %{public}d", slotId_);
+        core->UnRegisterPhoneNotify(shared_from_this(), ObserverHandler::RADIO_GSM_SMS);
+    }
+    if (smsCbHandler_ != nullptr) {
+        smsCbRunner_->Stop();
     }
 }
 
 int32_t GsmSmsReceiveHandler::HandleSmsByType(const shared_ptr<SmsBaseMessage> &smsBaseMessage)
 {
-    HILOG_DEBUG("GsmSmsReceiveHandler:: HandleSmsByType");
+    TELEPHONY_LOGD("GsmSmsReceiveHandler:: HandleSmsByType");
     if (smsBaseMessage == nullptr) {
-        return SMS_RESULT_UNKOWN_ERROR;
+        return AckIncomeCause::SMS_ACK_UNKNOWN_ERROR;
     }
     GsmSmsMessage *message = (GsmSmsMessage *)smsBaseMessage.get();
     if (message->IsSpecialMessage()) {
-        HILOG_DEBUG("GsmSmsReceiveHandler:: IsSpecialMessage");
-        return SMS_RESULT_PROCESSED;
+        TELEPHONY_LOGD("GsmSmsReceiveHandler:: IsSpecialMessage");
+        return AckIncomeCause::SMS_ACK_RESULT_OK;
     }
     // Encapsulate key information to Tracker
     shared_ptr<SmsReceiveIndexer> indexer;
@@ -66,7 +99,7 @@ int32_t GsmSmsReceiveHandler::HandleSmsByType(const shared_ptr<SmsBaseMessage> &
     } else {
         std::shared_ptr<SmsConcat> smsConcat = message->GetConcatMsg();
         if (smsConcat == nullptr) {
-            return SMS_RESULT_UNKOWN_ERROR;
+            return AckIncomeCause::SMS_ACK_UNKNOWN_ERROR;
         }
         indexer = make_shared<SmsReceiveIndexer>(message->GetRawPdu(), message->GetScTimestamp(),
             message->GetDestPort(), message->GetGsm(), message->GetOriginatingAddress(),
@@ -75,45 +108,31 @@ int32_t GsmSmsReceiveHandler::HandleSmsByType(const shared_ptr<SmsBaseMessage> &
     }
     // add messages to the database
     if (indexer == nullptr) {
-        return SMS_RESULT_UNKOWN_ERROR;
+        return AckIncomeCause::SMS_ACK_UNKNOWN_ERROR;
     }
 
     if (indexer->GetIsText() && IsRepeatedMessagePart(indexer)) {
-        return SMS_RESULT_REPEATED_ERROR;
+        return AckIncomeCause::SMS_ACK_REPEATED_ERROR;
     }
     string key =
         indexer->GetOriginatingAddress() + to_string(indexer->GetMsgRefId()) + to_string(indexer->GetMsgCount());
     indexer->SetEraseRefId(key);
     auto ret = receiveMap_.emplace(key, indexer);
     if (!ret->second) {
-        return SMS_RESULT_UNKOWN_ERROR;
+        return AckIncomeCause::SMS_ACK_UNKNOWN_ERROR;
     }
     CombineMessagePart(indexer);
-    return SMS_RESULT_PROCESSED;
+    return AckIncomeCause::SMS_ACK_RESULT_OK;
 }
 
 void GsmSmsReceiveHandler::ReplySmsToSmsc(int result, const shared_ptr<SmsBaseMessage> &response)
 {
-    if (rilManager_ != nullptr) {
-        int32_t ackResult = AckIncomeCause::SMS_ACK_UNKOWN_ERROR;
-        switch (result) {
-            case SMS_RESULT_OK:
-                return;
-            case SMS_RESULT_PROCESSED:
-                ackResult = AckIncomeCause::SMS_ACK_RESULT_OK;
-                break;
-            case SMS_RESULT_OUT_OF_MEMORY:
-                ackResult = AckIncomeCause::SMS_ACK_OUT_OF_MEMORY;
-                break;
-            case SMS_RESULT_UNKOWN_ERROR:
-            default:
-                ackResult = AckIncomeCause::SMS_ACK_UNKOWN_ERROR;
-                break;
-        }
+    std::shared_ptr<Core> core = GetCore();
+    if (core != nullptr) {
         auto reply = AppExecFwk::InnerEvent::Get(SMS_EVENT_NEW_SMS_REPLY, response);
         reply->SetOwner(shared_from_this());
-        HILOG_DEBUG("GsmSmsReceiveHandler::ReplySmsToSmsc ackResult %{public}d", ackResult);
-        rilManager_->SendSmsAck(result == SMS_RESULT_PROCESSED, ackResult, reply);
+        TELEPHONY_LOGD("GsmSmsReceiveHandler::ReplySmsToSmsc ackResult %{public}d", result);
+        core->SendSmsAck(result == AckIncomeCause::SMS_ACK_RESULT_OK, result, reply);
     }
 }
 
@@ -127,5 +146,5 @@ shared_ptr<SmsBaseMessage> GsmSmsReceiveHandler::TransformMessageInfo(const shar
     baseMessage = GsmSmsMessage::CreateMessage(pdu);
     return baseMessage;
 }
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS

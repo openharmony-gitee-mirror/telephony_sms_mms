@@ -12,19 +12,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef DELIVERY_SHORT_MESSAGE_CALLBACK_STUB_H
 #define DELIVERY_SHORT_MESSAGE_CALLBACK_STUB_H
+
 #include <cstdint>
+
 #include "iremote_stub.h"
+
 #include "short_message_manager.h"
+
 namespace OHOS {
-class DeliveryShortMessageCallbackStub : public IRemoteStub<SMS::IDeliveryShortMessageCallback> {
+namespace Telephony {
+class DeliveryShortMessageCallbackStub : public IRemoteStub<IDeliveryShortMessageCallback> {
 public:
     DeliveryShortMessageCallbackStub() = default;
     virtual ~DeliveryShortMessageCallbackStub() = default;
-    virtual int32_t OnSmsDeliveryResult(const std::u16string pdu) override;
+    virtual void OnSmsDeliveryResult(const std::u16string pdu) override;
     int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override final;
+
+private:
+    static constexpr int SMS_DEFAULT_RESULT = 0;
+    static constexpr int SMS_DEFAULT_ERROR = -1;
 };
+} // namespace Telephony
 } // namespace OHOS
 #endif // I_DELIVERY_SHORT_MESSAGE_CALLBACK_H

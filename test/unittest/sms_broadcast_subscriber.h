@@ -12,21 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef SMS_BROADCAST_SUBSCRIBER_H
 #define SMS_BROADCAST_SUBSCRIBER_H
+
 #include <string>
 #include <vector>
+
 #include "common_event.h"
 #include "common_event_manager.h"
+
 namespace OHOS {
-namespace SMS {
-const std::string SMS_ACTION_RECEIVE = "ohos.action.telephonySmsReceiveFinished";
+namespace Telephony {
 class SmsBroadcastSubscriber : public EventFwk::CommonEventSubscriber {
 public:
     explicit SmsBroadcastSubscriber(const OHOS::EventFwk::CommonEventSubscribeInfo &subscriberInfo);
     ~SmsBroadcastSubscriber() = default;
     virtual void OnReceiveEvent(const OHOS::EventFwk::CommonEventData &data);
 };
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS
 #endif

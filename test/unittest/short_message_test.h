@@ -12,17 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef SHORT_MESSAGE_TEST_H
 #define SHORT_MESSAGE_TEST_H
+
 #include "short_message.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 class ShortMessageTest {
 public:
-    void TestGetVisbleMessageBody(const ShortMessage &message) const;
+    void TestGetVisibleMessageBody(const ShortMessage &message) const;
     void TestShowShortMessage(const ShortMessage &message) const;
     ShortMessage *TestCreateMessage() const;
 };
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS
 #endif

@@ -12,27 +12,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef GSM_SMS_RECEIVE_HANDLER_H
 #define GSM_SMS_RECEIVE_HANDLER_H
+
 #include "event_handler.h"
 #include "event_runner.h"
+
+#include "gsm_sms_cb_handler.h"
 #include "sms_receive_indexer.h"
 #include "sms_receive_handler.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 class GsmSmsReceiveHandler : public SmsReceiveHandler {
 public:
     GsmSmsReceiveHandler(const std::shared_ptr<AppExecFwk::EventRunner> &runner, int32_t slotId);
     ~GsmSmsReceiveHandler() override;
-
-    void RegisterHandler();
-    void UnRegisterHandler();
+    void Init();
 
 protected:
     virtual int32_t HandleSmsByType(const std::shared_ptr<SmsBaseMessage> &smsBaseMessage) override;
     virtual void ReplySmsToSmsc(int result, const std::shared_ptr<SmsBaseMessage> &response) override;
     std::shared_ptr<SmsBaseMessage> TransformMessageInfo(const std::shared_ptr<SmsMessageInfo> &info) override;
+
+private:
+    std::shared_ptr<AppExecFwk::EventRunner> smsCbRunner_;
+    std::shared_ptr<GsmSmsCbHandler> smsCbHandler_;
+
+    bool RegisterHandler();
+    void UnRegisterHandler();
 };
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS
 #endif

@@ -12,30 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef SMS_BASE_MESSAGE__H
 #define SMS_BASE_MESSAGE__H
+
 #include <memory>
 #include <string>
 #include <vector>
-#include "gsm_sms_tpdu_codec.h"
-namespace OHOS {
-namespace SMS {
-#define WAP_PUSH_PORT 2948
-#define MAX_MSG_TEXT_LEN 1530
-#define MAX_REPLAY_PID 8
-enum ShortMessageClass {
-    /** class0 Indicates an instant message, which is displayed immediately after being received. */
-    SMS_INSTANT_MESSAGE = 0,
-    /** class1 Indicates an SMS message that can be stored on the device or SIM card based on the storage status. */
-    SMS_OPTIONAL_MESSAGE,
-    /** class2 Indicates an SMS message containing SIM card information, which is to be stored in a SIM card. */
-    SMS_SIM_MESSAGE,
-    /** class3 Indicates an SMS message to be forwarded to another device. */
-    SMS_FORWARD_MESSAGE,
-    /** Indicates an unknown type. */
-    SMS_CLASS_UNKNOWN
-};
 
+#include "gsm_sms_tpdu_codec.h"
+#include "cdma_sms_pdu_codec.h"
+
+namespace OHOS {
+namespace Telephony {
 typedef struct {
     uint16_t msgRef;
     uint16_t seqNum;
@@ -44,8 +33,8 @@ typedef struct {
 } SmsConcat;
 
 typedef struct {
-    uint32_t destPort;
-    uint32_t originPort;
+    uint16_t destPort;
+    uint16_t originPort;
     bool is8Bits;
 } SmsAppPortAddr;
 
@@ -59,12 +48,12 @@ class SmsBaseMessage {
 public:
     SmsBaseMessage() = default;
     virtual ~SmsBaseMessage() = default;
-    virtual void SetScAddress(const std::string &scAddress);
-    virtual std::string GetScAddress() const;
+    virtual void SetSmscAddr(const std::string &scAddress);
+    virtual std::string GetSmscAddr() const;
     virtual std::string GetOriginatingAddress() const;
     virtual std::string GetVisibleOriginatingAddress() const;
     virtual std::string GetVisibleMessageBody() const;
-    virtual enum ShortMessageClass GetMessageClass() const;
+    virtual enum SmsMessageClass GetMessageClass() const;
     std::vector<uint8_t> GetRawPdu() const;
     std::vector<uint8_t> GetRawUserData() const;
     virtual long GetScTimestamp() const;
@@ -82,26 +71,27 @@ public:
     virtual std::shared_ptr<SpecialSmsIndication> GetSpecialSmsInd();
     virtual bool IsConcatMsg();
     virtual bool IsWapPushMsg();
-    virtual void ConvertMessageClass(enum SMS_MSG_CLASS_E msgClass);
+    virtual void ConvertMessageClass(enum SmsMessageClass msgClass);
+    virtual int GetMsgRef();
 
 protected:
     std::string scAddress_;
     std::string originatingAddress_;
     std::string visibleOriginatingAddress_;
     std::string visibleMessageBody_;
-    enum ShortMessageClass msgClass_ = SMS_CLASS_UNKNOWN;
+    enum SmsMessageClass msgClass_ = SMS_CLASS_UNKNOWN;
     long scTimestamp_;
     int status_;
     int protocolId_;
     bool bReplaceMessage_;
-    bool bStatusRoretMessage_;
+    bool bStatusReportMessage_;
     bool bMwi_;
     bool bMwiSense_;
     bool bCphsMwi_;
     bool bMwiClear_;
     bool bMwiSet_;
     bool bMwiNotStore_;
-    bool hasReplayPath_;
+    bool hasReplyPath_;
     bool bMoreMsg_;
     bool bHeaderInd_;
     int headerCnt_;
@@ -117,12 +107,15 @@ protected:
     std::shared_ptr<SmsConcat> smsConcat_;
     std::shared_ptr<SmsAppPortAddr> portAddress_;
     std::shared_ptr<SpecialSmsIndication> specialSmsInd_;
+    constexpr static int16_t MAX_MSG_TEXT_LEN = 1530;
+    constexpr static int16_t MAX_REPLY_PID = 8;
 
 private:
-    constexpr static int pid87_ = 0xc0;
-    constexpr static int pid7_ = 0x40;
-    constexpr static int pid10Low_ = 0x3f;
+    constexpr static int PID_87 = 0xc0;
+    constexpr static int PID_7 = 0x40;
+    constexpr static int PID_10_LOW = 0x3f;
+    constexpr static int16_t WAP_PUSH_PORT = 2948;
 };
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS
 #endif

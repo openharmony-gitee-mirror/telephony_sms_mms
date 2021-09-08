@@ -12,20 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef CDMA_SMS_RECEIVE_HANDLER_H
 #define CDMA_SMS_RECEIVE_HANDLER_H
+
 #include "event_handler.h"
 #include "event_runner.h"
+
 #include "sms_receive_indexer.h"
 #include "sms_receive_handler.h"
 #include "sms_send_indexer.h"
 #include "sms_sender.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 class CdmaSmsReceiveHandler : public SmsReceiveHandler {
 public:
     CdmaSmsReceiveHandler(const std::shared_ptr<AppExecFwk::EventRunner> &runner, int32_t slotId);
-    virtual ~CdmaSmsReceiveHandler() = default;
+    virtual ~CdmaSmsReceiveHandler() override;
     void SetCdmaSender(const std::weak_ptr<SmsSender> &smsSender);
 
 protected:
@@ -37,6 +41,6 @@ protected:
 private:
     std::weak_ptr<SmsSender> cdmaSmsSender_;
 };
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS
 #endif

@@ -12,15 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef SEND_CALL_BACK_H
 #define SEND_CALL_BACK_H
+
 #include "send_short_message_callback_stub.h"
+
 namespace OHOS {
+namespace Telephony {
 class SendCallBack : public SendShortMessageCallbackStub {
 public:
     SendCallBack() = default;
     ~SendCallBack() = default;
-    int32_t OnSmsSendResult(const SMS::ISendShortMessageCallback::SmsSendResult result) override;
+    void OnSmsSendResult(const ISendShortMessageCallback::SmsSendResult result) override;
 };
+} // namespace Telephony
 } // namespace OHOS
 #endif // SEND_CALL_BACK_H

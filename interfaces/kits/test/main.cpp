@@ -12,17 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include <iostream>
 #include <memory>
+
 #include "delivery_call_back.h"
 #include "send_call_back.h"
 #include "short_message_manager.h"
+
+using namespace OHOS::Telephony;
 int main()
 {
     std::cout << "enter sms_mms_api_test main" << std::endl;
-    std::unique_ptr<OHOS::ShortMessageManager> shortMessageManager = std::make_unique<OHOS::ShortMessageManager>();
-    OHOS::sptr<OHOS::SendCallBack> sendCallBackPtr(new OHOS::SendCallBack());
-    OHOS::sptr<OHOS::DeliveryCallBack> deliveryCallBackPtr(new OHOS::DeliveryCallBack());
+    std::unique_ptr<ShortMessageManager> shortMessageManager = std::make_unique<ShortMessageManager>();
+    OHOS::sptr<SendCallBack> sendCallBackPtr(new SendCallBack());
+    OHOS::sptr<DeliveryCallBack> deliveryCallBackPtr(new DeliveryCallBack());
     shortMessageManager->SendMessage(1, u"12345678", u"asdf", u"sms_text", sendCallBackPtr, deliveryCallBackPtr);
     std::cout << "sms_mms_api_test main end" << std::endl;
     return 0;

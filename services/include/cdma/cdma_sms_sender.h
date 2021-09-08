@@ -12,29 +12,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef CDMA_SMS_SENDER_H
 #define CDMA_SMS_SENDER_H
+
 #include <memory>
 
 #include "sms_sender.h"
+#include "sms_receive_indexer.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 class CdmaSmsSender : public SmsSender {
 public:
-    CdmaSmsSender(const std::shared_ptr<AppExecFwk::EventRunner> &runner, int32_t subId,
+    CdmaSmsSender(const std::shared_ptr<AppExecFwk::EventRunner> &runner, int32_t slotId,
         std::function<void(std::shared_ptr<SmsSendIndexer>)> sendRetryFun);
     ~CdmaSmsSender() override;
     void TextBasedSmsDelivery(const std::string &desAddr, const std::string &scAddr, const std::string &text,
         const sptr<ISendShortMessageCallback> &sendCallback,
-        const sptr<IDeliveryShortMessageCallback> &deliveCallback) override;
+        const sptr<IDeliveryShortMessageCallback> &deliveryCallback) override;
     void DataBasedSmsDelivery(const std::string &desAddr, const std::string &scAddr, int32_t port,
         const uint8_t *data, uint32_t dataLen, const sptr<ISendShortMessageCallback> &sendCallback,
-        const sptr<IDeliveryShortMessageCallback> &deliveCallback) override;
-    void StatusReportAnalysis(const std::shared_ptr<SmsSendIndexer> &smsIndxer) override;
-    void SendSmsToRil(const std::shared_ptr<SmsSendIndexer> &smsIndxer) override;
+        const sptr<IDeliveryShortMessageCallback> &deliveryCallback) override;
+    void SendSmsToRil(const std::shared_ptr<SmsSendIndexer> &smsIndexer) override;
+    void Init() override;
+    void ReceiveStatusReport(const std::shared_ptr<SmsReceiveIndexer> &smsIndexer);
+
+protected:
+    void StatusReportAnalysis(const AppExecFwk::InnerEvent::Pointer &event) override;
 
 private:
 };
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS
 #endif

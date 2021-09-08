@@ -15,24 +15,26 @@
 
 #ifndef SEND_CALL_BACK_H
 #define SEND_CALL_BACK_H
+
 #include "napi/native_api.h"
 #include "napi_sms.h"
 #include "send_short_message_callback_stub.h"
+
 namespace OHOS {
-namespace TelephonyNapi {
+namespace Telephony {
 class SendCallback : public SendShortMessageCallbackStub {
 public:
-    SendCallback(bool hasCallback, napi_env env, napi_value thisVar, napi_ref callbackRef);
+    SendCallback(bool hasCallback, napi_env env, napi_ref thisVarRef, napi_ref callbackRef);
     ~SendCallback();
-    int32_t OnSmsSendResult(const SMS::ISendShortMessageCallback::SmsSendResult result) override;
+    void OnSmsSendResult(const ISendShortMessageCallback::SmsSendResult result) override;
 
 private:
     bool hasCallback_;
     napi_env env_;
-    napi_value thisVar_;
+    napi_ref thisVarRef_;
     napi_ref callbackRef_;
-    SendSmsResult WrapSmsSendResult(const SMS::ISendShortMessageCallback::SmsSendResult result);
+    SendSmsResult WrapSmsSendResult(const ISendShortMessageCallback::SmsSendResult result);
 };
-} // namespace TelephonyNapi
+} // namespace Telephony
 } // namespace OHOS
 #endif // SEND_CALL_BACK_H

@@ -13,12 +13,16 @@
  * limitations under the License.
  */
 
-#include <inttypes.h>
 #include "short_message_test.h"
+
+#include <iostream>
 #include <memory>
+
 #include "string_utils.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
+using namespace OHOS::Telephony;
 ShortMessage *ShortMessageTest::TestCreateMessage() const
 {
     std::vector<unsigned char> pdu = StringUtils::HexToByteVector(
@@ -27,32 +31,32 @@ ShortMessage *ShortMessageTest::TestCreateMessage() const
         "142302C130");
     ShortMessage *message = ShortMessage::CreateMessage(pdu, u"3gpp");
     if (message == nullptr) {
-        printf("TestCreateMessage fail!!! \n");
+        std::cout << "TestCreateMessage fail!!!" << std::endl;
     } else {
-        printf("TestCreateMessage succeess!!! \n");
+        std::cout << "TestCreateMessage success!!!" << std::endl;
     }
     return message;
 }
 
-void ShortMessageTest::TestGetVisbleMessageBody(const ShortMessage &message) const
+void ShortMessageTest::TestGetVisibleMessageBody(const ShortMessage &message) const
 {
-    printf("GetVisibleMessageBody = %s\r\n", StringUtils::ToUtf8(message.GetVisibleMessageBody()).c_str());
+    std::cout << "GetVisibleMessageBody = " << StringUtils::ToUtf8(message.GetVisibleMessageBody()) << std::endl;
 }
 
 void ShortMessageTest::TestShowShortMessage(const ShortMessage &message) const
 {
-    printf("GetScAddress = %s\r\n", StringUtils::ToUtf8(message.GetScAddress()).c_str());
-    printf("GetVisibleMessageBody = %s\r\n", StringUtils::ToUtf8(message.GetVisibleMessageBody()).c_str());
-    printf("GetVisibleRawAddress = %s\r\n", StringUtils::ToUtf8(message.GetVisibleRawAddress()).c_str());
-    printf("GetScTimestamp = %" PRIu64 "\r\n", message.GetScTimestamp());
-    printf("GetProtocolId = %d\r\n", message.GetProtocolId());
-    printf("GetStatus = %d\r\n", message.GetStatus());
-    printf("GetMessageClass = %d\r\n", message.GetMessageClass());
-    printf("HasReplyPath = %d\r\n", message.HasReplyPath());
-    printf("IsSmsStatusReportMessage = %d\r\n", message.IsSmsStatusReportMessage());
-    printf("IsReplaceMessage = %d\r\n", message.IsReplaceMessage());
-    printf("HasReplyPath = %d\r\n", message.HasReplyPath());
-    printf("raw pdu = %s\r\n", StringUtils::StringToHex(message.GetPdu()).c_str());
+    std::cout << "GetSmscAddr = " << StringUtils::ToUtf8(message.GetScAddress()) << std::endl;
+    std::cout << "GetVisibleMessageBody = " << StringUtils::ToUtf8(message.GetVisibleMessageBody()) << std::endl;
+    std::cout << "GetVisibleRawAddress = " << StringUtils::ToUtf8(message.GetVisibleRawAddress()) << std::endl;
+    std::cout << "GetScTimestamp = " << message.GetScTimestamp() << std::endl;
+    std::cout << "GetProtocolId = " << message.GetProtocolId() << std::endl;
+    std::cout << "GetStatus = " << message.GetStatus() << std::endl;
+    std::cout << "GetMessageClass = " << message.GetMessageClass() << std::endl;
+    std::cout << "HasReplyPath = " << message.HasReplyPath() << std::endl;
+    std::cout << "IsSmsStatusReportMessage = " << message.IsSmsStatusReportMessage() << std::endl;
+    std::cout << "IsReplaceMessage = " << message.IsReplaceMessage() << std::endl;
+    std::cout << "HasReplyPath = " << message.HasReplyPath() << std::endl;
+    std::cout << "raw pdu = " << StringUtils::StringToHex(message.GetPdu()) << std::endl;
 }
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS

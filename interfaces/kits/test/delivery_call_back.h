@@ -12,16 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef DELIVERY_CALL_BACK_H
 #define DELIVERY_CALL_BACK_H
+
 #include "delivery_short_message_callback_stub.h"
+
 namespace OHOS {
+namespace Telephony {
 class DeliveryCallBack : public DeliveryShortMessageCallbackStub {
 public:
     DeliveryCallBack() = default;
     ~DeliveryCallBack() = default;
-    int32_t OnSmsDeliveryResult(const std::u16string pdu) override;
+    void OnSmsDeliveryResult(const std::u16string pdu) override;
 };
+} // namespace Telephony
 } // namespace OHOS
 
 #endif // DELIVERY_CALL_BACK_H

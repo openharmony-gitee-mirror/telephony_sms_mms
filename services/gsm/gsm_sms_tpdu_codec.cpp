@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "gsm_sms_tpdu_codec.h"
+
 #include <memory>
 #include <string>
+
 #include "gsm_sms_param_codec.h"
 #include "gsm_sms_udata_codec.h"
 #include "securec.h"
-#include "sms_hilog_wrapper.h"
+#include "telephony_log_wrapper.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 using namespace std;
 template<typename T>
 inline void UniquePtrDeleterOneDimension(T **(&ptr))
@@ -35,7 +39,7 @@ inline void UniquePtrDeleterOneDimension(T **(&ptr))
 int GsmSmsTpduCodec::EncodeTpdu(const struct SmsTpdu *pSmsTpdu, char *pTpdu, int pduLen)
 {
     int tpduLen = 0;
-    HILOG_INFO("pduLen%{public}d", pduLen);
+    TELEPHONY_LOGI("pduLen%{public}d", pduLen);
     if (pSmsTpdu == nullptr) {
         return tpduLen;
     }
@@ -109,10 +113,10 @@ int GsmSmsTpduCodec::EncodeSubmit(const struct SmsSubmit *pSubmit, char *pTpdu)
         return offset;
     }
     offset += length;
-    HILOG_INFO("TP-DA len:=%{public}d,TP-MR msgRef:=%{public}d", length, pSubmit->msgRef);
+    TELEPHONY_LOGI("TP-DA len:=%{public}d,TP-MR msgRef:=%{public}d", length, pSubmit->msgRef);
     /* TP-PID */
     pTpdu[offset++] = pSubmit->pid;
-    HILOG_INFO("TP-PID pSubmit->pid : =%{public}d", pSubmit->pid);
+    TELEPHONY_LOGI("TP-PID pSubmit->pid : =%{public}d", pSubmit->pid);
     /* TP-DCS */
     length = GsmSmsParamCodec::EncodeDCS(&pSubmit->dcs, &dcs);
     ret = memcpy_s(&(pTpdu[offset]), length, dcs, length);
@@ -120,14 +124,14 @@ int GsmSmsTpduCodec::EncodeSubmit(const struct SmsSubmit *pSubmit, char *pTpdu)
         return offset;
     }
     offset += length;
-    HILOG_INFO("TP-DCS length : =%{public}d", length);
+    TELEPHONY_LOGI("TP-DCS length : =%{public}d", length);
     /* TP-VP */
     if (pSubmit->vpf != SMS_VPF_NOT_PRESENT) {
         length = GsmSmsParamCodec::EncodeTime(&pSubmit->validityPeriod, &vpTime);
         if (length > 0) {
             ret = memcpy_s(&(pTpdu[offset]), length, vpTime, length);
             if (ret != EOK) {
-                HILOG_ERROR("EncodeSubmit vpTime memcpy_s error.");
+                TELEPHONY_LOGE("EncodeSubmit vpTime memcpy_s error.");
                 return offset;
             }
             offset += length;
@@ -136,7 +140,7 @@ int GsmSmsTpduCodec::EncodeSubmit(const struct SmsSubmit *pSubmit, char *pTpdu)
     const struct SmsUserData *pUserData = &(pSubmit->userData);
     char *pEncodeData = &(pTpdu[offset]);
     encodeSize = GsmSmsUDataCodec::EncodeUserData(pUserData, pSubmit->dcs.codingScheme, pEncodeData);
-    HILOG_INFO("encodeSize : =%{public}d", encodeSize);
+    TELEPHONY_LOGI("encodeSize : =%{public}d", encodeSize);
     offset += encodeSize;
     return offset;
 }
@@ -169,7 +173,7 @@ int GsmSmsTpduCodec::EncodeSubmitTpduType(const struct SmsSubmit &pSubmit, unsig
     if (pSubmit.bStatusReport == true) {
         pTpdu[offset] |= 0x20;
     }
-    HILOG_INFO("TP-SRR pSubmit->bStatusReport: =%{public}d", pSubmit.bStatusReport);
+    TELEPHONY_LOGI("TP-SRR pSubmit->bStatusReport: =%{public}d", pSubmit.bStatusReport);
     /* TP-UDHI */
     if (pSubmit.bHeaderInd == true) {
         pTpdu[offset] |= 0x40;
@@ -218,7 +222,7 @@ int GsmSmsTpduCodec::EncodeDeliver(const struct SmsDeliver *pDeliver, char *pTpd
     /* TP-OA */
     length = GsmSmsParamCodec::EncodeAddress(&pDeliver->originAddress, &address);
     if (memcpy_s(&(pTpdu[offset]), length, address, length) != EOK) {
-        HILOG_ERROR("EncodeDeliver originAddress memory error.");
+        TELEPHONY_LOGE("EncodeDeliver originAddress memory error.");
         return offset;
     }
     offset += length;
@@ -227,7 +231,7 @@ int GsmSmsTpduCodec::EncodeDeliver(const struct SmsDeliver *pDeliver, char *pTpd
     /* TP-DCS */
     length = GsmSmsParamCodec::EncodeDCS(&pDeliver->dcs, &dcs);
     if (memcpy_s(&(pTpdu[offset]), length, dcs, length) != EOK) {
-        HILOG_ERROR("EncodeDeliver dcs memory error.");
+        TELEPHONY_LOGE("EncodeDeliver dcs memory error.");
         return offset;
     }
     offset += length;
@@ -241,7 +245,7 @@ int GsmSmsTpduCodec::EncodeDeliver(const struct SmsDeliver *pDeliver, char *pTpd
     const struct SmsUserData *pUserData = &(pDeliver->userData);
     char *pEncodeData = &(pTpdu[offset]);
     encodeSize = GsmSmsUDataCodec::EncodeUserData(pUserData, pDeliver->dcs.codingScheme, pEncodeData);
-    HILOG_INFO("encodeSize : %{public}d", encodeSize);
+    TELEPHONY_LOGI("encodeSize : %{public}d", encodeSize);
     offset += encodeSize;
     return offset;
 }
@@ -262,7 +266,7 @@ int GsmSmsTpduCodec::EncodeDeliverReport(const struct SmsDeliverReport *pDeliver
     /* TP-FCS */
     if (pDeliverRep->reportType == SMS_REPORT_NEGATIVE) {
         pTpdu[offset++] = pDeliverRep->failCause;
-        HILOG_INFO("Delivery report : fail cause = [%{public}02x]", pDeliverRep->failCause);
+        TELEPHONY_LOGI("Delivery report : fail cause = [%{public}02x]", pDeliverRep->failCause);
     }
     /* TP-PI */
     pTpdu[offset++] = pDeliverRep->paramInd;
@@ -287,7 +291,7 @@ int GsmSmsTpduCodec::EncodeDeliverReport(const struct SmsDeliverReport *pDeliver
         const struct SmsUserData *pUserData = &(pDeliverRep->userData);
         char *pEncodeData = &(pTpdu[offset]);
         encodeSize = GsmSmsUDataCodec::EncodeUserData(pUserData, pDeliverRep->dcs.codingScheme, pEncodeData);
-        HILOG_INFO("encodeSize : %{public}d", encodeSize);
+        TELEPHONY_LOGI("encodeSize : %{public}d", encodeSize);
         offset += encodeSize;
     }
     pTpdu[offset] = '\0';
@@ -327,21 +331,21 @@ int GsmSmsTpduCodec::EncodeStatusReport(const struct SmsStatusReport *pStatusRep
     /* TP-RA */
     length = GsmSmsParamCodec::EncodeAddress(&pStatusRep->recipAddress, &address);
     if (memcpy_s(&(pTpdu[offset]), length, address, length) != EOK) {
-        HILOG_ERROR("EncodeStatusReport memory EncodeAddress error");
+        TELEPHONY_LOGE("EncodeStatusReport memory EncodeAddress error");
         return offset;
     }
     offset += length;
     /* TP-SCTS */
     length = GsmSmsParamCodec::EncodeTime(&pStatusRep->timeStamp, &scts);
     if (memcpy_s(&(pTpdu[offset]), length, scts, length) != EOK) {
-        HILOG_ERROR("EncodeStatusReport memory EncodeTime error");
+        TELEPHONY_LOGE("EncodeStatusReport memory EncodeTime error");
         return offset;
     }
     offset += length;
     /* TP-DT */
     length = GsmSmsParamCodec::EncodeTime(&pStatusRep->dischargeTime, &dt);
     if (memcpy_s(&(pTpdu[offset]), length, dt, length) != EOK) {
-        HILOG_ERROR("EncodeStatusReport memory EncodeTime dt error");
+        TELEPHONY_LOGE("EncodeStatusReport memory EncodeTime dt error");
         return offset;
     }
     offset += length;
@@ -355,15 +359,15 @@ int GsmSmsTpduCodec::EncodeStatusReport(const struct SmsStatusReport *pStatusRep
     }
     /* TP-DCS */
     if (pStatusRep->paramInd & 0x02) {
-        int length = 0;
+        int len = 0;
         char *dcs = nullptr;
         unique_ptr<char *, void (*)(char **(&))> dcsBuf(&dcs, UniquePtrDeleterOneDimension);
-        length = GsmSmsParamCodec::EncodeDCS(&pStatusRep->dcs, &dcs);
-        if (memcpy_s(&(pTpdu[offset]), length, dcs, length) != EOK) {
-            HILOG_ERROR("EncodeStatusReport memory EncodeDCS error");
+        len = GsmSmsParamCodec::EncodeDCS(&pStatusRep->dcs, &dcs);
+        if (memcpy_s(&(pTpdu[offset]), len, dcs, len) != EOK) {
+            TELEPHONY_LOGE("EncodeStatusReport memory EncodeDCS error");
             return offset;
         }
-        offset += length;
+        offset += len;
     }
     /* TP-UDL & TP-UD */
     if (pStatusRep->paramInd & 0x04) {
@@ -392,7 +396,7 @@ int GsmSmsTpduCodec::DecodeSubmit(const unsigned char *pSubpdu, int pduLen, stru
         pSmsSub->bRejectDup = true;
     }
     // TP-VPF
-    pSmsSub->vpf = (enum SMS_VPF_E)(pSubpdu[offset] & 0x18);
+    pSmsSub->vpf = (enum SmsVpf)(pSubpdu[offset] & 0x18);
     // TP-SRR
     if (pSubpdu[offset] & 0x20) {
         pSmsSub->bStatusReport = true;
@@ -427,7 +431,7 @@ int GsmSmsTpduCodec::DecodeSubmit(const unsigned char *pSubpdu, int pduLen, stru
     // TP-UDL & TP-UD
     udLen = GsmSmsUDataCodec::DecodeUserData(
         pSubpdu + offset, pduLen, pSmsSub->bHeaderInd, pSmsSub->dcs.codingScheme, &(pSmsSub->userData));
-    return udLen;
+    return udLen + offset;
 }
 
 void DecodePartData(const unsigned char &pTpdu, struct SmsDeliver &pDeliver)
@@ -484,7 +488,7 @@ int GsmSmsTpduCodec::DecodeDeliver(const unsigned char *pTpdu, int TpduLen, stru
         int setType = -1;
         int indType = -1;
         bool bVmi = GsmSmsParamCodec::CheckCphsVmiMsg(&pTpdu[tmpOffset], &setType, &indType);
-        HILOG_INFO("bVmi= [%{public}d], setType=[%{public}d], indType=[%{public}d]", bVmi, setType, indType);
+        TELEPHONY_LOGI("bVmi= [%{public}d], setType=[%{public}d], indType=[%{public}d]", bVmi, setType, indType);
         if (bVmi) {
             pDeliver->dcs.bMWI = true;
             if (setType == 0) {
@@ -504,7 +508,7 @@ int GsmSmsTpduCodec::DecodeDeliver(const unsigned char *pTpdu, int TpduLen, stru
     /* TP-UD */
     udLen = GsmSmsUDataCodec::DecodeUserData(&pTpdu[offset], TpduLen, pDeliver->bHeaderInd,
         pDeliver->dcs.codingScheme, &(pDeliver->userData), &(pDeliver->udData));
-    return udLen;
+    return udLen + offset;
 }
 
 int GsmSmsTpduCodec::DecodeStatusReport(const unsigned char *pTpdu, int TpduLen, struct SmsStatusReport *pStatusRep)
@@ -573,12 +577,12 @@ int GsmSmsTpduCodec::DecodeStatusReport(const unsigned char *pTpdu, int TpduLen,
         udLen = GsmSmsUDataCodec::DecodeUserData(&pTpdu[offset], TpduLen, pStatusRep->bHeaderInd,
             pStatusRep->dcs.codingScheme, &(pStatusRep->userData));
     }
-    return udLen;
+    return udLen + offset;
 }
 
-enum SMS_PID_E GsmSmsTpduCodec::ParsePid(const unsigned char pid)
+enum SmsPid GsmSmsTpduCodec::ParsePid(const unsigned char pid)
 {
-    return (enum SMS_PID_E)pid;
+    return (enum SmsPid)pid;
 }
 
 void GsmSmsTpduCodec::DebugTpdu(const unsigned char *pTpdu, int TpduLen, const enum DecodeType type)
@@ -594,7 +598,7 @@ void GsmSmsTpduCodec::DebugTpdu(const unsigned char *pTpdu, int TpduLen, const e
         uint8_t step = HEX_BYTE_STEP;
         const int len = sizeof(tpduTmp) - (i * step);
         if (snprintf_s(tpduTmp + (i * step), len - 1, len - 1, "%02X", pTpdu[i]) < 0) {
-            HILOG_ERROR("DebugTpdu snprintf_s error");
+            TELEPHONY_LOGE("DebugTpdu snprintf_s error");
             return;
         }
     }
@@ -609,5 +613,5 @@ void GsmSmsTpduCodec::DebugTpdu(const unsigned char *pTpdu, int TpduLen, const e
             break;
     }
 }
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS

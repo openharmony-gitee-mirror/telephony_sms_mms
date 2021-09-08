@@ -12,16 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef CDMA_SMS_WAPPUSH_HANDLER_H
-#define CDMA_SMS_WAPPUSH_HANDLER_H
-#include "sms_wappush_handler.h"
+
+#ifndef CDMA_SMS_WAP_PUSH_HANDLER_H
+#define CDMA_SMS_WAP_PUSH_HANDLER_H
+
+#include "sms_wap_push_handler.h"
+
 namespace OHOS {
-namespace SMS {
-class CdmaSmsWappushHandler : public SmsWappushHandler {
+namespace Telephony {
+class CdmaSmsWapPushHandler : public SmsWapPushHandler {
 public:
-    CdmaSmsWappushHandler() = default;
-    ~CdmaSmsWappushHandler() = default;
+    CdmaSmsWapPushHandler() = default;
+    ~CdmaSmsWapPushHandler() = default;
 };
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS
 #endif

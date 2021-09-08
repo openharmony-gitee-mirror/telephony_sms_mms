@@ -12,14 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "cdma_sms_receive_handler.h"
-#include "sms_hilog_wrapper.h"
+
+#include "string_utils.h"
+#include "telephony_log_wrapper.h"
+
 namespace OHOS {
-namespace SMS {
-CdmaSmsReceiveHandler::CdmaSmsReceiveHandler(const std::shared_ptr<AppExecFwk::EventRunner> &runner, int32_t subId)
-    : SmsReceiveHandler(runner, subId)
+namespace Telephony {
+CdmaSmsReceiveHandler::CdmaSmsReceiveHandler(const std::shared_ptr<AppExecFwk::EventRunner> &runner, int32_t slotId)
+    : SmsReceiveHandler(runner, slotId)
 {
-    HILOG_INFO("%{public}d", slotId_);
+    TELEPHONY_LOGI("%{public}d", slotId_);
 }
 
 int32_t CdmaSmsReceiveHandler::HandleSmsByType(const std::shared_ptr<SmsBaseMessage> &smsBaseMessage)
@@ -37,8 +41,15 @@ void CdmaSmsReceiveHandler::SetCdmaSender(const std::weak_ptr<SmsSender> &smsSen
 std::shared_ptr<SmsBaseMessage> CdmaSmsReceiveHandler::TransformMessageInfo(
     const std::shared_ptr<SmsMessageInfo> &info)
 {
-    (void)info;
-    return nullptr;
+    std::shared_ptr<SmsBaseMessage> baseMessage = nullptr;
+    if (info == nullptr) {
+        return baseMessage;
+    }
+    std::string pdu = StringUtils::StringToHex(info->pdu);
+    // baseMessage = CdmaSmsMessage::CreateMessage(pdu)
+    return baseMessage;
 }
-} // namespace SMS
+
+CdmaSmsReceiveHandler::~CdmaSmsReceiveHandler() {}
+} // namespace Telephony
 } // namespace OHOS

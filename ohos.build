@@ -9,7 +9,11 @@
                 "//base/telephony/sms_mms/interfaces/kits/js/napi:telephony_sms",
                 "//base/telephony/sms_mms/interfaces/kits/test:tel_sms_mms_api_test",
                 "//base/telephony/sms_mms/sa_profile:sms_mms_sa_profile"
+            ],
+            "test_list": [
+                "//base/telephony/call_manager/test/unittest:unittest"
             ]
         }
     }
 }
+

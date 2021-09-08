@@ -12,25 +12,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef GSM_SMS_SENDER_TEST_H
 #define GSM_SMS_SENDER_TEST_H
+
 #include <cstring>
 #include <iostream>
+
 #include "i_sms_service_interface.h"
 #include "securec.h"
 #include "sms_service_proxy.h"
 #include "system_ability_definition.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 class GsmSmsSenderTest {
 public:
-    void TestGsmSendShortData(const sptr<SMS::ISmsServiceInterface> &smsService) const;
-    void TestMissingParameter(const sptr<SMS::ISmsServiceInterface> &smsService) const;
-    void TestErrorParameter(const sptr<SMS::ISmsServiceInterface> &smsService) const;
-    void TestGsmSendLongData(const sptr<SMS::ISmsServiceInterface> &smsService) const;
-    void TestGsmSendShortText(const sptr<SMS::ISmsServiceInterface> &smsService) const;
-    void TestGsmSendLongText(const sptr<SMS::ISmsServiceInterface> &smsService) const;
+    void TestGsmSendShortData(const sptr<ISmsServiceInterface> &smsService) const;
+    void TestGsmSendLongData(const sptr<ISmsServiceInterface> &smsService) const;
+    void TestGsmSendShortText(const sptr<ISmsServiceInterface> &smsService) const;
+    void TestGsmSendLongText(const sptr<ISmsServiceInterface> &smsService) const;
+    void TestSetSmscAddr(const sptr<ISmsServiceInterface> &smsService) const;
+    void TestGetSmscAddr(const sptr<ISmsServiceInterface> &smsService) const;
+    void TestAddSimMessage(const sptr<ISmsServiceInterface> &smsService) const;
+    void TestDelSimMessage(const sptr<ISmsServiceInterface> &smsService) const;
+    void TestUpdateSimMessage(const sptr<ISmsServiceInterface> &smsService) const;
+    void TestGetAllSimMessages(const sptr<ISmsServiceInterface> &smsService) const;
+    void TestEnableCBRangeConfig(const sptr<ISmsServiceInterface> &smsService) const;
+    void TestDisableCBRangeConfig(const sptr<ISmsServiceInterface> &smsService) const;
+    void TestEnableCBConfig(const sptr<ISmsServiceInterface> &smsService) const;
+    void TestDisableCBConfig(const sptr<ISmsServiceInterface> &smsService) const;
+    void TestSetDefaultSmsSlotId(const sptr<ISmsServiceInterface> &smsService) const;
+    void TestGetDefaultSmsSlotId(const sptr<ISmsServiceInterface> &smsService) const;
 };
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS
 #endif

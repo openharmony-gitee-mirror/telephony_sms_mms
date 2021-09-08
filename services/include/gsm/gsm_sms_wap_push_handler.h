@@ -12,14 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "sms_cellbroadcast_handler.h"
-#include "sms_hilog_wrapper.h"
+
+#ifndef GSM_SMS_WAP_PUSH_HANDLER_H
+#define GSM_SMS_WAP_PUSH_HANDLER_H
+
+#include "sms_wap_push_handler.h"
+
 namespace OHOS {
-namespace SMS {
-void SmsCellbroadcastHandler::ProcessEvent(const AppExecFwk::InnerEvent::Pointer &event)
-{
-    auto eventId = event->GetInnerEventId();
-    HILOG_INFO("SmsCellbroadcastHandler eventId = %{public}d", eventId);
-}
-} // namespace SMS
+namespace Telephony {
+class GsmSmsWapPushHandler : public SmsWapPushHandler {
+public:
+    GsmSmsWapPushHandler() = default;
+    ~GsmSmsWapPushHandler() = default;
+};
+} // namespace Telephony
 } // namespace OHOS
+#endif

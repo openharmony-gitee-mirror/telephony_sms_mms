@@ -12,7 +12,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "cdma_sms_wappush_handler.h"
+
+#ifndef SMS_WAP_PUSH_HANDLER_H
+#define SMS_WAP_PUSH_HANDLER_H
+
+#include <memory>
+
+#include "event_handler.h"
+#include "event_runner.h"
+
 namespace OHOS {
-namespace SMS {} // namespace SMS
+namespace Telephony {
+class SmsWapPushHandler : public AppExecFwk::EventHandler {
+public:
+    SmsWapPushHandler(const std::shared_ptr<AppExecFwk::EventRunner> &runner, int32_t slotId);
+    virtual ~SmsWapPushHandler();
+    virtual void ProcessEvent(const AppExecFwk::InnerEvent::Pointer &event) override;
+
+protected:
+private:
+    int32_t slotId_;
+};
+} // namespace Telephony
 } // namespace OHOS
+#endif

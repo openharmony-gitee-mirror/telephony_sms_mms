@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef GSM_SMS_PARAMCODEC_H
 #define GSM_SMS_PARAMCODEC_H
+
 #include "gsm_pdu_code_type.h"
 
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 #define MAX_TIME_LEN 32
 #define MAX_ADDRESS_LEN 21
 #define MAX_ADD_PARAM_LEN 12
@@ -42,18 +44,13 @@ public:
     static int DecodeAddress(const unsigned char *pTpdu, struct SmsAddress *pAddress);
     static int DecodeTime(const unsigned char *pTpdu, struct SmsTimeStamp *pTimeStamp);
     static int DecodeDCS(const unsigned char *pTpdu, struct SmsDcs *pDCS);
-    static void DecodeSMSC(unsigned char *pAddress, int AddrLen, enum SMS_TON_E ton, char *pDecodeAddr);
-    static int DecodeSMSC(const unsigned char *pTpdu, struct SmsAddress &pAddress);
+    static void DecodeSMSC(unsigned char *pAddress, int AddrLen, enum SmsTon ton, char *pDecodeAddr);
+    static int DecodeSMSC(const unsigned char *pTpdu, int pduLen, struct SmsAddress &pAddress);
     static bool CheckCphsVmiMsg(const unsigned char *pTpdu, int *setType, int *indType);
-    static long ConvertTime(const struct SmsTimeStamp *time_stamp);
-    static void DebugTimeStamp(const struct SmsTimeStamp &time_stamp);
 
 private:
-    static char ConvertBcdToChar(const unsigned char c);
-    static int ConvertDigitToBcd(const char *pDigit, int DigitLen, unsigned char *pBcd);
-    static int ConvertBcdToDigit(const unsigned char *pBcd, int BcdLen, char *pDigit);
-    constexpr static unsigned char numberTen_ = 10;
+    constexpr static unsigned char NUMBER_TEN = 10;
 };
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS
 #endif /* SMS_PLUGIN_PARAMCODEC_H */

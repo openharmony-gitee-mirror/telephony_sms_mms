@@ -12,8 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef SMS_SEND_INDEXER_H
 #define SMS_SEND_INDEXER_H
+
 #include <map>
 #include <memory>
 #include <string>
@@ -21,16 +23,17 @@
 
 #include "i_sms_service_interface.h"
 #include "sms_common.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 class SmsSendIndexer {
 public:
     SmsSendIndexer(const std::string &desAddr, const std::string &scAddr, const std::string &text,
         const sptr<ISendShortMessageCallback> &sendCallback,
-        const sptr<IDeliveryShortMessageCallback> &deliveCallback);
+        const sptr<IDeliveryShortMessageCallback> &deliveryCallback);
     SmsSendIndexer(const std::string &desAddr, const std::string &scAddr, int32_t port, const uint8_t *data,
         uint32_t dataLen, const sptr<ISendShortMessageCallback> &sendCallback,
-        const sptr<IDeliveryShortMessageCallback> &deliveCallback);
+        const sptr<IDeliveryShortMessageCallback> &deliveryCallback);
     ~SmsSendIndexer();
     uint8_t GetPsResendCount() const;
     void SetPsResendCount(uint8_t resendCount);
@@ -40,9 +43,9 @@ public:
     void SetMsgRefId(uint8_t msgRefId);
     int64_t GetMsgRefId64Bit() const;
     void SetMsgRefId64Bit(int64_t msgRefId64Bit);
-    std::vector<uint8_t> &GetAckPdu();
+    const std::vector<uint8_t> &GetAckPdu() const;
     void SetAckPdu(const std::vector<uint8_t> &ackPdu);
-    std::vector<uint8_t> &GetData();
+    const std::vector<uint8_t> &GetData() const;
     void SetData(const std::vector<uint8_t> &data);
     uint8_t GetErrorCode() const;
     void SetErrorCode(uint8_t errorCode);
@@ -56,7 +59,7 @@ public:
     sptr<ISendShortMessageCallback> GetSendCallback() const;
     void SetSendCallback(const sptr<ISendShortMessageCallback> &sendCallback);
     sptr<IDeliveryShortMessageCallback> GetDeliveryCallback() const;
-    void SetDeliveryCallback(const sptr<IDeliveryShortMessageCallback> &deliveCallback);
+    void SetDeliveryCallback(const sptr<IDeliveryShortMessageCallback> &deliveryCallback);
     std::string GetText() const;
     void SetText(const std::string &text);
     std::shared_ptr<uint8_t> GetUnSentCellCount() const;
@@ -70,14 +73,14 @@ public:
     long GetTimeStamp() const;
     void SetTimeStamp(long timeStamp);
     void SetNetWorkType(NetWorkType netWorkType);
-    NetWorkType GetNetWorkType();
-    void SetEncodeSmca(const std::vector<uint8_t> &smac);
-    std::vector<uint8_t> &GetEncodeSmca();
+    NetWorkType GetNetWorkType() const;
+    void SetEncodeSmca(const std::vector<uint8_t> &smca);
+    const std::vector<uint8_t> &GetEncodeSmca() const;
     void SetEncodePdu(const std::vector<uint8_t> &pdu);
-    std::vector<uint8_t> &GetEncodePdu();
+    const std::vector<uint8_t> &GetEncodePdu() const;
     void UpdatePduForResend();
     void SetEncodePdu(const std::vector<uint8_t> &&pdu);
-    void SetEncodeSmca(const std::vector<uint8_t> &&smac);
+    void SetEncodeSmca(const std::vector<uint8_t> &&smca);
     void SetAckPdu(const std::vector<uint8_t> &&ackPdu);
     void SetData(const std::vector<uint8_t> &&data);
 
@@ -86,25 +89,25 @@ private:
     std::vector<uint8_t> smca_;
     std::vector<uint8_t> ackPdu_;
     std::vector<uint8_t> data_;
-    uint8_t errorCode_;
+    uint8_t errorCode_ = 0;
     bool isText_ = false;
     std::string text_;
-    NetWorkType netWorkType_;
+    NetWorkType netWorkType_ = NetWorkType::NET_TYPE_UNKNOWN;
     std::string scAddr_;
     std::string destAddr_;
-    int32_t destPort_;
+    int32_t destPort_ = 0;
     bool hasMore_ = false;
-    long timeStamp_;
+    long timeStamp_ = 0;
     uint8_t csResendCount_ = 0;
     uint8_t psResendCount_ = 0;
-    uint8_t msgRefId_;
-    int64_t msgRefId64Bit_;
-    std::shared_ptr<uint8_t> unSentCellCount_;
-    std::shared_ptr<bool> hasCellFailed_;
-    sptr<ISendShortMessageCallback> sendCallback_;
-    sptr<IDeliveryShortMessageCallback> deliveryCallback_;
+    uint8_t msgRefId_ = 0;
+    int64_t msgRefId64Bit_ = 0;
+    std::shared_ptr<uint8_t> unSentCellCount_ = nullptr;
+    std::shared_ptr<bool> hasCellFailed_ = nullptr;
+    sptr<ISendShortMessageCallback> sendCallback_ = nullptr;
+    sptr<IDeliveryShortMessageCallback> deliveryCallback_ = nullptr;
     bool isFailure_ = false;
 };
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS
 #endif

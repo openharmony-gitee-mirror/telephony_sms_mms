@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef GSM_SMS_TPDU_CODEC_H
 #define GSM_SMS_TPDU_CODEC_H
+
 #include "gsm_sms_udata_codec.h"
 #include "msg_text_convert.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 #define HEX_BYTE_STEP 2
-enum Sms_MTI_TYPE { SMS_MTI_DELIVER = 0, SMS_MTI_SUBMIT, SMS_MTI_STATUS_REP };
+enum SmsMTIType { SMS_MTI_DELIVER = 0, SMS_MTI_SUBMIT, SMS_MTI_STATUS_REP };
 
 enum DecodeType {
     DECODE_SUBMIT_TYPE,
@@ -43,10 +46,10 @@ private:
     static int DecodeSubmit(const unsigned char *pTpdu, int TpduLen, struct SmsSubmit *pSubmit);
     static int DecodeDeliver(const unsigned char *pTpdu, int TpduLen, struct SmsDeliver *pDeliver);
     static int DecodeStatusReport(const unsigned char *pTpdu, int TpduLen, struct SmsStatusReport *pStatusRep);
-    static enum SMS_PID_E ParsePid(const unsigned char pid);
+    static enum SmsPid ParsePid(const unsigned char pid);
     static int EncodeSubmitTpduType(const struct SmsSubmit &pSubmit, unsigned char *pTpdu);
     static void DebugTpdu(const unsigned char *pTpdu, int TpduLen, const enum DecodeType type);
 };
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS
 #endif

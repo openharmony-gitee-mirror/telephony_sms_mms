@@ -12,11 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "sms_sender.h"
-#include "sms_hilog_wrapper.h"
+
 #include "string_utils.h"
+#include "telephony_log_wrapper.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 using namespace std;
 using namespace std::chrono;
 SmsSender::SmsSender(const shared_ptr<AppExecFwk::EventRunner> &runner, int32_t slotId,
@@ -26,20 +29,20 @@ SmsSender::SmsSender(const shared_ptr<AppExecFwk::EventRunner> &runner, int32_t 
 
 SmsSender::~SmsSender() {}
 
-void SmsSender::Init()
-{
-    HILOG_INFO("SmsSender::Init.");
-}
-
 void SmsSender::ProcessEvent(const AppExecFwk::InnerEvent::Pointer &event)
 {
+    if (event == nullptr) {
+        TELEPHONY_LOGE("event is nullptr");
+        return;
+    }
+    TELEPHONY_LOGD("SmsSender::ProcessEvent");
     shared_ptr<SmsSendIndexer> smsIndexer = nullptr;
     int eventId = event->GetInnerEventId();
     switch (eventId) {
         case ObserverHandler::RADIO_SEND_SMS:
         case ObserverHandler::RADIO_SEND_IMS_GSM_SMS:
         case ObserverHandler::RADIO_SEND_SMS_EXPECT_MORE: {
-            smsIndexer = FindCacheMapAndTransform(event->GetSharedObject<SendSmsResultInfo>());
+            smsIndexer = FindCacheMapAndTransform(event);
             HandleMessageResponse(smsIndexer);
             break;
         }
@@ -49,8 +52,7 @@ void SmsSender::ProcessEvent(const AppExecFwk::InnerEvent::Pointer &event)
             break;
         }
         case ObserverHandler::RADIO_SMS_STATUS: {
-            smsIndexer = FindCacheMapAndTransform(event->GetSharedObject<SendSmsResultInfo>());
-            StatusReportAnalysis(smsIndexer);
+            StatusReportAnalysis(event);
             break;
         }
         default:
@@ -61,16 +63,17 @@ void SmsSender::ProcessEvent(const AppExecFwk::InnerEvent::Pointer &event)
 void SmsSender::HandleMessageResponse(const shared_ptr<SmsSendIndexer> &smsIndexer)
 {
     if (smsIndexer == nullptr) {
+        TELEPHONY_LOGE("smsIndexer is nullptr");
         return;
     }
     if (!SendCacheMapEraseItem(smsIndexer->GetMsgRefId64Bit())) {
-        HILOG_ERROR("SendCacheMapEraseItem fail !!!!!");
+        TELEPHONY_LOGE("SendCacheMapEraseItem fail !!!!!");
     }
     SendCacheMapTimeoutCheck();
     if (!smsIndexer->GetIsFailure()) {
         if (smsIndexer->GetDeliveryCallback() != nullptr) {
             // Expecting a status report.  Add it to the list.
-            if (reportList_.size() > maxReportListLimit_) {
+            if (reportList_.size() > MAX_REPORT_LIST_LIMIT) {
                 reportList_.pop_front();
             }
             reportList_.push_back(smsIndexer);
@@ -78,7 +81,7 @@ void SmsSender::HandleMessageResponse(const shared_ptr<SmsSendIndexer> &smsIndex
         SendMessageSucceed(smsIndexer);
     } else {
         if (smsIndexer->GetPsResendCount() > 0) {
-            smsIndexer->SetCsResendCount(maxSendRetries_);
+            smsIndexer->SetCsResendCount(MAX_SEND_RETRIES);
         }
         HandleResend(smsIndexer);
     }
@@ -87,7 +90,7 @@ void SmsSender::HandleMessageResponse(const shared_ptr<SmsSendIndexer> &smsIndex
 void SmsSender::SendMessageSucceed(const shared_ptr<SmsSendIndexer> &smsIndexer)
 {
     if (smsIndexer == nullptr) {
-        HILOG_ERROR("SendMessageSucceed but smsIndexer drop!");
+        TELEPHONY_LOGE("SendMessageSucceed but smsIndexer drop!");
         return;
     }
     bool isLastPart = false;
@@ -115,6 +118,7 @@ void SmsSender::SendMessageSucceed(const shared_ptr<SmsSendIndexer> &smsIndexer)
 void SmsSender::SendMessageFailed(const shared_ptr<SmsSendIndexer> &smsIndexer)
 {
     if (smsIndexer == nullptr) {
+        TELEPHONY_LOGE("smsIndexer is nullptr");
         return;
     }
     shared_ptr<bool> hasCellFailed = smsIndexer->GetHasCellFailed();
@@ -123,6 +127,10 @@ void SmsSender::SendMessageFailed(const shared_ptr<SmsSendIndexer> &smsIndexer)
     }
     bool isLastPart = false;
     std::shared_ptr<uint8_t> unSentCellCount = smsIndexer->GetUnSentCellCount();
+    if (unSentCellCount == nullptr) {
+        TELEPHONY_LOGE("unSentCellCount is nullptr");
+        return;
+    }
     (*unSentCellCount) = (*unSentCellCount) - 1;
     if ((*unSentCellCount) == 0) {
         isLastPart = true;
@@ -151,6 +159,22 @@ NetDomainType SmsSender::GetNetDomainType() const
     return netDomainType_;
 }
 
+void SmsSender::SendResultCallBack(
+    const std::shared_ptr<SmsSendIndexer> &indexer, ISendShortMessageCallback::SmsSendResult result) const
+{
+    if (indexer != nullptr && indexer->GetSendCallback() != nullptr) {
+        indexer->GetSendCallback()->OnSmsSendResult(result);
+    }
+}
+
+void SmsSender::SendResultCallBack(
+    const sptr<ISendShortMessageCallback> &sendCallback, ISendShortMessageCallback::SmsSendResult result) const
+{
+    if (sendCallback != nullptr) {
+        sendCallback->OnSmsSendResult(result);
+    }
+}
+
 void SmsSender::SendCacheMapTimeoutCheck()
 {
     std::lock_guard<std::mutex> guard(sendCacheMapMutex_);
@@ -161,7 +185,7 @@ void SmsSender::SendCacheMapTimeoutCheck()
     while (item != sendCacheMap_.end()) {
         auto iter = item++;
         shared_ptr<SmsSendIndexer> &indexer = iter->second;
-        if (indexer == nullptr || (timeStamp - indexer->GetTimeStamp()) > expiredTime_) {
+        if (indexer == nullptr || (timeStamp - indexer->GetTimeStamp()) > EXPIRED_TIME) {
             sendCacheMap_.erase(iter);
         }
     }
@@ -170,7 +194,7 @@ void SmsSender::SendCacheMapTimeoutCheck()
 bool SmsSender::SendCacheMapLimitCheck(const sptr<ISendShortMessageCallback> &sendCallback)
 {
     std::lock_guard<std::mutex> guard(sendCacheMapMutex_);
-    if (sendCacheMap_.size() > msgQueueLimit_) {
+    if (sendCacheMap_.size() > MSG_QUEUE_LIMIT) {
         if (sendCallback != nullptr) {
             sendCallback->OnSmsSendResult(ISendShortMessageCallback::SEND_SMS_FAILURE_UNKNOWN);
             return true;
@@ -195,30 +219,56 @@ bool SmsSender::SendCacheMapEraseItem(int64_t id)
     return (sendCacheMap_.erase(id) != 0);
 }
 
-std::shared_ptr<SmsSendIndexer> SmsSender::FindCacheMapAndTransform(const std::shared_ptr<SendSmsResultInfo> &info)
+std::shared_ptr<SmsSendIndexer> SmsSender::FindCacheMapAndTransform(const AppExecFwk::InnerEvent::Pointer &event)
 {
-    if (info == nullptr) {
+    if (event == nullptr) {
+        TELEPHONY_LOGE("event is nullptr");
         return nullptr;
     }
+    std::shared_ptr<SmsSendIndexer> smsIndexer = nullptr;
     std::lock_guard<std::mutex> guard(sendCacheMapMutex_);
-    auto iter = sendCacheMap_.find(info->flag);
-    if (iter != sendCacheMap_.end()) {
-        std::shared_ptr<SmsSendIndexer> sendIndexer = iter->second;
-        sendIndexer->SetMsgRefId((uint8_t)info->msgRef);
-        sendIndexer->SetAckPdu(std::move(StringUtils::HexToByteVector(info->pdu)));
-        if (info->errCode != 0) {
-            sendIndexer->SetIsFailure(true);
+    std::shared_ptr<HRilRadioResponseInfo> res = event->GetSharedObject<HRilRadioResponseInfo>();
+    if (res != nullptr) {
+        auto iter = sendCacheMap_.find(res->flag);
+        if (iter != sendCacheMap_.end()) {
+            smsIndexer = iter->second;
+            if (smsIndexer == nullptr) {
+                TELEPHONY_LOGE("smsIndexer is nullptr");
+                return nullptr;
+            }
+            smsIndexer->SetErrorCode(ISendShortMessageCallback::SEND_SMS_FAILURE_UNKNOWN);
+            smsIndexer->SetMsgRefId64Bit(res->flag);
+            smsIndexer->SetIsFailure(true);
         }
-        sendIndexer->SetErrorCode(info->errCode);
-        sendIndexer->SetMsgRefId64Bit(info->flag);
-        return sendIndexer;
+    } else {
+        std::shared_ptr<SendSmsResultInfo> info = event->GetSharedObject<SendSmsResultInfo>();
+        if (info == nullptr) {
+            return nullptr;
+        }
+        auto iter = sendCacheMap_.find(info->flag);
+        if (iter != sendCacheMap_.end()) {
+            TELEPHONY_LOGD("msgRef = %{public}d", info->msgRef);
+            smsIndexer = iter->second;
+            if (smsIndexer == nullptr) {
+                TELEPHONY_LOGE("smsIndexer is nullptr");
+                return nullptr;
+            }
+            smsIndexer->SetMsgRefId((uint8_t)info->msgRef);
+            smsIndexer->SetAckPdu(std::move(StringUtils::HexToByteVector(info->pdu)));
+            if (info->errCode != 0) {
+                smsIndexer->SetIsFailure(true);
+            }
+            smsIndexer->SetErrorCode(info->errCode);
+            smsIndexer->SetMsgRefId64Bit(info->flag);
+        }
     }
-    return nullptr;
+    return smsIndexer;
 }
 
 void SmsSender::HandleResend(const std::shared_ptr<SmsSendIndexer> &smsIndexer)
 {
     if (smsIndexer == nullptr) {
+        TELEPHONY_LOGE("smsIndexer is nullptr");
         return;
     }
     if (!GetImsDomain()) {
@@ -228,12 +278,32 @@ void SmsSender::HandleResend(const std::shared_ptr<SmsSendIndexer> &smsIndexer)
                 (ISendShortMessageCallback::SmsSendResult)(smsIndexer->GetErrorCode()));
         }
         // resending mechanism
-    } else if ((smsIndexer->GetErrorCode() == SMS_FAIL_RETRY) && smsIndexer->GetCsResendCount() < maxSendRetries_) {
+    } else if ((smsIndexer->GetErrorCode() == HRIL_ERR_CMD_SEND_FAILURE) &&
+        smsIndexer->GetCsResendCount() < MAX_SEND_RETRIES) {
         smsIndexer->SetCsResendCount(smsIndexer->GetCsResendCount() + 1);
-        SendEvent(MSG_SMS_RETRY_DELIVERY, smsIndexer, delayMaxTimeMsce_);
+        SendEvent(MSG_SMS_RETRY_DELIVERY, smsIndexer, DELAY_MAX_TIME_MSCE);
     } else {
         SendMessageFailed(smsIndexer);
     }
 }
-} // namespace SMS
+
+uint8_t SmsSender::GetMsgRef8Bit()
+{
+    return ++msgRef8bit_;
+}
+
+int64_t SmsSender::GetMsgRef64Bit()
+{
+    return ++msgRef64bit_;
+}
+
+std::shared_ptr<Core> SmsSender::GetCore() const
+{
+    std::shared_ptr<Core> core = CoreManager::GetInstance().getCore(slotId_);
+    if (core != nullptr && core->IsInitCore()) {
+        return core;
+    }
+    return nullptr;
+}
+} // namespace Telephony
 } // namespace OHOS

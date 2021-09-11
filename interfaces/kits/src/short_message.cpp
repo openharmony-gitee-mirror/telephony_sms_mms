@@ -14,118 +14,249 @@
  */
 
 #include "short_message.h"
+
+#include "cdma_sms_message.h"
 #include "gsm_sms_message.h"
+#include "sms_base_message.h"
 #include "string_utils.h"
+#include "telephony_log_wrapper.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
+bool ShortMessage::ReadFromParcel(Parcel &parcel)
+{
+    if (!parcel.ReadString16(visibleMessageBody_)) {
+        return false;
+    }
+    if (!parcel.ReadString16(visibleRawAddress_)) {
+        return false;
+    }
+
+    int8_t msgClass = 0;
+    if (!parcel.ReadInt8(msgClass)) {
+        return false;
+    }
+    messageClass_ = static_cast<ShortMessage::SmsMessageClass>(msgClass);
+
+    int8_t simMsgStatus = 0;
+    if (!parcel.ReadInt8(simMsgStatus)) {
+        return false;
+    }
+    simMessageStatus_ = static_cast<ShortMessage::SmsSimMessageStatus>(simMsgStatus);
+
+    if (!parcel.ReadString16(scAddress_)) {
+        return false;
+    }
+    if (!parcel.ReadInt64(scTimestamp_)) {
+        return false;
+    }
+    if (!parcel.ReadBool(isReplaceMessage_)) {
+        return false;
+    }
+    if (!parcel.ReadInt32(status_)) {
+        return false;
+    }
+    if (!parcel.ReadBool(isSmsStatusReportMessage_)) {
+        return false;
+    }
+    if (!parcel.ReadBool(hasReplyPath_)) {
+        return false;
+    }
+    if (!parcel.ReadInt32(protocolId_)) {
+        return false;
+    }
+    if (!parcel.ReadUInt8Vector(&pdu_)) {
+        return false;
+    }
+    return true;
+}
+
+bool ShortMessage::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteString16(visibleMessageBody_)) {
+        return false;
+    }
+    if (!parcel.WriteString16(visibleRawAddress_)) {
+        return false;
+    }
+    if (!parcel.WriteInt8(static_cast<int8_t>(messageClass_))) {
+        return false;
+    }
+    if (!parcel.WriteInt8(static_cast<int8_t>(simMessageStatus_))) {
+        return false;
+    }
+    if (!parcel.WriteString16(scAddress_)) {
+        return false;
+    }
+    if (!parcel.WriteInt64(scTimestamp_)) {
+        return false;
+    }
+    if (!parcel.WriteBool(isReplaceMessage_)) {
+        return false;
+    }
+    if (!parcel.WriteInt32(status_)) {
+        return false;
+    }
+    if (!parcel.WriteBool(isSmsStatusReportMessage_)) {
+        return false;
+    }
+    if (!parcel.WriteBool(hasReplyPath_)) {
+        return false;
+    }
+    if (!parcel.WriteInt32(protocolId_)) {
+        return false;
+    }
+    if (!parcel.WriteUInt8Vector(pdu_)) {
+        return false;
+    }
+    return true;
+}
+
+ShortMessage ShortMessage::UnMarshalling(Parcel &parcel)
+{
+    ShortMessage param;
+    param.ReadFromParcel(parcel);
+    return param;
+}
+
 std::u16string ShortMessage::GetVisibleMessageBody() const
 {
-    std::string visibleMessageBody;
-    if (baseMessage_ != nullptr) {
-        visibleMessageBody = baseMessage_->GetVisibleMessageBody();
-    }
-    return SMS::StringUtils::ToUtf16(visibleMessageBody);
+    return visibleMessageBody_;
 }
 
 std::u16string ShortMessage::GetVisibleRawAddress() const
 {
-    std::string visibleRawAddress;
-    if (baseMessage_ != nullptr) {
-        visibleRawAddress = baseMessage_->GetOriginatingAddress();
-    }
-    return SMS::StringUtils::ToUtf16(visibleRawAddress);
+    return visibleRawAddress_;
 }
 
-ShortMessage::ShortMessageClass ShortMessage::GetMessageClass() const
+ShortMessage::SmsMessageClass ShortMessage::GetMessageClass() const
 {
-    ShortMessage::ShortMessageClass msgClase = SMS_CLASS_UNKNOWN;
-    if (baseMessage_ != nullptr) {
-        msgClase = (ShortMessage::ShortMessageClass)baseMessage_->GetMessageClass();
-    }
-    return msgClase;
+    return messageClass_;
 }
 
 std::u16string ShortMessage::GetScAddress() const
 {
-    std::string scAddress;
-    if (baseMessage_ != nullptr) {
-        scAddress = baseMessage_->GetScAddress();
-    }
-    return SMS::StringUtils::ToUtf16(scAddress);
+    return scAddress_;
 }
 
 int64_t ShortMessage::GetScTimestamp() const
 {
-    if (baseMessage_ != nullptr) {
-        return baseMessage_->GetScTimestamp();
-    }
-    return 0;
+    return scTimestamp_;
 }
 
 bool ShortMessage::IsReplaceMessage() const
 {
-    if (baseMessage_ != nullptr) {
-        return baseMessage_->IsReplaceMessage();
-    }
-    return false;
+    return isReplaceMessage_;
 }
 
 int32_t ShortMessage::GetStatus() const
 {
-    if (baseMessage_ != nullptr) {
-        return baseMessage_->GetStatus();
-    }
-    return 0;
+    return status_;
 }
 
 bool ShortMessage::IsSmsStatusReportMessage() const
 {
-    if (baseMessage_ != nullptr) {
-        return baseMessage_->IsSmsStatusReportMessage();
-    }
-    return false;
+    return isSmsStatusReportMessage_;
 }
 
 bool ShortMessage::HasReplyPath() const
 {
-    if (baseMessage_ != nullptr) {
-        return baseMessage_->HasReplyPath();
-    }
-    return false;
+    return hasReplyPath_;
+}
+
+ShortMessage::SmsSimMessageStatus ShortMessage::GetIccMessageStatus() const
+{
+    return simMessageStatus_;
 }
 
 int32_t ShortMessage::GetProtocolId() const
 {
-    if (baseMessage_ != nullptr) {
-        return baseMessage_->GetProtocolId();
-    }
-    return 0;
+    return protocolId_;
 }
 
 std::vector<unsigned char> ShortMessage::GetPdu() const
 {
-    std::vector<unsigned char> pdu;
-    if (baseMessage_ != nullptr) {
-        pdu = baseMessage_->GetRawPdu();
-    }
-    return pdu;
+    return pdu_;
 }
 
 ShortMessage *ShortMessage::CreateMessage(std::vector<unsigned char> &pdu, std::u16string specification)
 {
-    std::string indicates = SMS::StringUtils::ToUtf8(specification);
-    ShortMessage *message = nullptr;
-    if (indicates == "3gpp") {
-        message = new (std::nothrow) ShortMessage();
-        if (message != nullptr) {
-            message->baseMessage_ = SMS::GsmSmsMessage::CreateMessage(SMS::StringUtils::StringToHex(pdu));
-            if (message->baseMessage_ == nullptr) {
-                delete message;
-                message = nullptr;
-            }
-        }
+    std::string indicates = StringUtils::ToUtf8(specification);
+    ShortMessage *message = new (std::nothrow) ShortMessage();
+    if (message == nullptr) {
+        return nullptr;
     }
+
+    std::shared_ptr<SmsBaseMessage> baseMessage;
+    if (indicates == "3gpp") {
+        baseMessage = GsmSmsMessage::CreateMessage(StringUtils::StringToHex(pdu));
+    } else if (indicates == "3gpp2") {
+        baseMessage = CdmaSmsMessage::CreateMessage(StringUtils::StringToHex(pdu));
+    }
+
+    if (baseMessage == nullptr) {
+        delete message;
+        message = nullptr;
+        return message;
+    }
+
+    message->visibleMessageBody_ = StringUtils::ToUtf16(baseMessage->GetVisibleMessageBody());
+    message->visibleRawAddress_ = StringUtils::ToUtf16(baseMessage->GetVisibleOriginatingAddress());
+    message->messageClass_ = static_cast<ShortMessage::SmsMessageClass>(baseMessage->GetMessageClass());
+    message->scAddress_ = StringUtils::ToUtf16(baseMessage->GetSmscAddr());
+    message->scTimestamp_ = baseMessage->GetScTimestamp();
+    message->isReplaceMessage_ = baseMessage->IsReplaceMessage();
+    message->status_ = baseMessage->GetStatus();
+    message->isSmsStatusReportMessage_ = baseMessage->IsSmsStatusReportMessage();
+    message->hasReplyPath_ = baseMessage->HasReplyPath();
+    message->protocolId_ = baseMessage->GetProtocolId();
+    message->pdu_ = baseMessage->GetRawPdu();
     return message;
 }
-} // namespace SMS
+
+ShortMessage ShortMessage::CreateIccMessage(std::vector<unsigned char> &pdu, std::string specification)
+{
+    ShortMessage message;
+    message.simMessageStatus_ = SMS_SIM_MESSAGE_STATUS_UNKNOWN;
+    if (pdu.size() <= MIN_ICC_PDU_LEN) {
+        return message;
+    }
+
+    unsigned char simStatus = pdu.at(0);
+    TELEPHONY_LOGI("simStatus = %{public}d", simStatus);
+    if (simStatus == SMS_SIM_MESSAGE_STATUS_FREE) {
+        message.simMessageStatus_ = SMS_SIM_MESSAGE_STATUS_FREE;
+        return message;
+    }
+    std::vector<unsigned char> pduTemp(pdu.begin() + MIN_ICC_PDU_LEN, pdu.end());
+    std::shared_ptr<SmsBaseMessage> baseMessage;
+    if (specification == "3gpp") {
+        baseMessage = GsmSmsMessage::CreateMessage(StringUtils::StringToHex(pduTemp));
+    } else if (specification == "3gpp2") {
+        baseMessage = CdmaSmsMessage::CreateMessage(StringUtils::StringToHex(pduTemp));
+    }
+    if (baseMessage == nullptr) {
+        TELEPHONY_LOGE("baseMessage is nullptr!");
+        return message;
+    }
+
+    if (simStatus == SMS_SIM_MESSAGE_STATUS_READ || simStatus == SMS_SIM_MESSAGE_STATUS_UNREAD ||
+        simStatus == SMS_SIM_MESSAGE_STATUS_SENT || simStatus == SMS_SIM_MESSAGE_STATUS_UNSENT) {
+        message.simMessageStatus_ = static_cast<SmsSimMessageStatus>(simStatus);
+    }
+
+    message.visibleMessageBody_ = StringUtils::ToUtf16(baseMessage->GetVisibleMessageBody());
+    message.visibleRawAddress_ = StringUtils::ToUtf16(baseMessage->GetVisibleOriginatingAddress());
+    message.messageClass_ = static_cast<ShortMessage::SmsMessageClass>(baseMessage->GetMessageClass());
+    message.scAddress_ = StringUtils::ToUtf16(baseMessage->GetSmscAddr());
+    message.scTimestamp_ = baseMessage->GetScTimestamp();
+    message.isReplaceMessage_ = baseMessage->IsReplaceMessage();
+    message.status_ = baseMessage->GetStatus();
+    message.isSmsStatusReportMessage_ = baseMessage->IsSmsStatusReportMessage();
+    message.hasReplyPath_ = baseMessage->HasReplyPath();
+    message.protocolId_ = baseMessage->GetProtocolId();
+    message.pdu_ = baseMessage->GetRawPdu();
+    return message;
+}
+} // namespace Telephony
 } // namespace OHOS

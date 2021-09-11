@@ -12,16 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef SMS_RECEIVE_MANAGER_H
 #define SMS_RECEIVE_MANAGER_H
+
 #include <iostream>
 #include <memory>
+
 #include "cdma_sms_receive_handler.h"
 #include "gsm_sms_receive_handler.h"
 #include "sms_receive_handler.h"
 #include "sms_sender.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 class SmsReceiveManager : public std::enable_shared_from_this<SmsReceiveManager> {
 public:
     explicit SmsReceiveManager(int32_t slotId);
@@ -37,6 +41,6 @@ private:
     std::shared_ptr<AppExecFwk::EventRunner> cdmaSmsReceiveRunner_;
     int32_t slotId_;
 };
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS
 #endif

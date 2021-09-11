@@ -12,12 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "send_call_back.h"
+
 #include <iostream>
+
 namespace OHOS {
-int32_t SendCallBack::OnSmsSendResult(const SMS::ISendShortMessageCallback::SmsSendResult result)
+namespace Telephony {
+void SendCallBack::OnSmsSendResult(const ISendShortMessageCallback::SmsSendResult result)
 {
     std::cout << "OnSmsSendResult = " << result << std::endl;
-    return -1;
 }
+} // namespace Telephony
 } // namespace OHOS

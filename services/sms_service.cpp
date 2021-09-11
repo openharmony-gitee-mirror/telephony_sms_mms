@@ -12,11 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "sms_service.h"
+
 #include <string>
-#include "sms_hilog_wrapper.h"
+
+#include "telephony_log_wrapper.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 using namespace std;
 using namespace AppExecFwk;
 using namespace HiviewDFX;
@@ -28,17 +32,16 @@ SmsService::~SmsService() {}
 
 void SmsService::OnStart()
 {
-    HILOG_INFO("enter SmsService::OnStart");
     if (state_ == ServiceRunningState::STATE_RUNNING) {
-        HILOG_ERROR("msService has already started.");
+        TELEPHONY_LOGE("msService has already started.");
         return;
     }
     if (!Init()) {
-        HILOG_ERROR("failed to init SmsService");
+        TELEPHONY_LOGE("failed to init SmsService");
         return;
     }
     state_ = ServiceRunningState::STATE_RUNNING;
-    HILOG_INFO("SmsService::OnStart start service.");
+    TELEPHONY_LOGI("SmsService::OnStart start service.");
 }
 
 bool SmsService::Init()
@@ -46,13 +49,13 @@ bool SmsService::Init()
     if (!registerToService_) {
         bool ret = Publish(DelayedSingleton<SmsService>::GetInstance().get());
         if (!ret) {
-            HILOG_ERROR("SmsService::Init Publish failed!");
+            TELEPHONY_LOGE("SmsService::Init Publish failed!");
             return false;
         }
         registerToService_ = true;
+        WaitCoreServiceToInit();
         InitModule();
     }
-    HILOG_INFO("SmsService::Init init successfully.");
     return true;
 }
 
@@ -60,12 +63,30 @@ void SmsService::OnStop()
 {
     state_ = ServiceRunningState::STATE_NOT_START;
     registerToService_ = false;
-    HILOG_INFO("SmsService::OnStop stop service.");
+    TELEPHONY_LOGI("SmsService::OnStop stop service.");
 }
 
 void SmsService::OnDump()
 {
-    HILOG_DEBUG("SmsService OnDump");
+    TELEPHONY_LOGD("SmsService OnDump");
 }
-} // namespace SMS
+
+bool SmsService::WaitCoreServiceToInit()
+{
+    bool ret = false;
+    for (uint32_t i = 0; i < CONNECT_MAX_TRY_COUNT; i++) {
+        int slotId = CoreManager::DEFAULT_SLOT_ID;
+        std::shared_ptr<Core> core = CoreManager::GetInstance().getCore(slotId);
+        TELEPHONY_LOGI("connect core service count: %{public}d", i);
+        if (core != nullptr && core->IsInitCore()) {
+            ret = true;
+            TELEPHONY_LOGI("SmsService Connection successful");
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(CONNECT_SERVICE_WAIT_TIME));
+    }
+    TELEPHONY_LOGI("SmsService connect core service init ok.");
+    return ret;
+}
+} // namespace Telephony
 } // namespace OHOS

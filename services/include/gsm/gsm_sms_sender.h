@@ -12,19 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef GSM_SMS_SENDER_H
 #define GSM_SMS_SENDER_H
+
 #include <functional>
 #include <memory>
 #include <string>
+#include <mutex>
+
 #include "event_runner.h"
+
 #include "gsm_sms_message.h"
 #include "i_delivery_short_message_callback.h"
 #include "i_send_short_message_callback.h"
 #include "sms_send_indexer.h"
 #include "sms_sender.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 class GsmSmsSender : public SmsSender {
 public:
     GsmSmsSender(const std::shared_ptr<AppExecFwk::EventRunner> &runner, int32_t slotId,
@@ -33,22 +39,22 @@ public:
     void Init() override;
     void TextBasedSmsDelivery(const std::string &desAddr, const std::string &scAddr, const std::string &text,
         const sptr<ISendShortMessageCallback> &sendCallback,
-        const sptr<IDeliveryShortMessageCallback> &deliveCallback) override;
+        const sptr<IDeliveryShortMessageCallback> &deliveryCallback) override;
     void DataBasedSmsDelivery(const std::string &desAddr, const std::string &scAddr, int32_t port,
         const uint8_t *data, uint32_t dataLen, const sptr<ISendShortMessageCallback> &sendCallback,
-        const sptr<IDeliveryShortMessageCallback> &deliveCallback) override;
-    void StatusReportAnalysis(const std::shared_ptr<SmsSendIndexer> &smsIndexer) override;
+        const sptr<IDeliveryShortMessageCallback> &deliveryCallback) override;
     void SendSmsToRil(const std::shared_ptr<SmsSendIndexer> &smsIndexer) override;
 
 protected:
+    void StatusReportAnalysis(const AppExecFwk::InnerEvent::Pointer &event) override;
+
 private:
-    uint8_t msgRef8bit_ = 0;
-    int64_t msgRef64bit_ = 0;
-    uint8_t GetMsgRef8Bit();
-    int64_t GetMsgRef64Bit();
     void SetSendIndexerInfo(std::shared_ptr<SmsSendIndexer> &indexer,
         const std::shared_ptr<struct EncodeInfo> &encodeInfo, unsigned char msgRef8bit);
+    bool RegisterHandler();
+
+    std::mutex mutex_;
 };
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS
 #endif

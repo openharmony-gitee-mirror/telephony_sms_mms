@@ -39,6 +39,8 @@ ohos_executable("tel_sms_mms_api_test") {
   deps = [
     "$SUBSYSTEM_DIR/sms_mms:tel_sms_mms",
     "$SUBSYSTEM_DIR/sms_mms/interfaces/kits:tel_sms_mms_api",
+    "//base/telephony/core_service/common:libtelephony_common",
+    "//base/telephony/ril_adapter/hril:hril",
     "//utils/native/base:utils",
   ]
 
@@ -47,6 +49,11 @@ ohos_executable("tel_sms_mms_api_test") {
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr_L2:samgr_proxy",
+  ]
+
+  defines = [
+    "TELEPHONY_LOG_TAG = \"SMS_MMS_API\"",
+    "LOG_DOMAIN = 0xD002B01",
   ]
 
   if (is_standard_system) {

@@ -12,15 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "sms_send_manager.h"
+
 #include <functional>
 #include <memory.h>
+
 #include "gsm_sms_tpdu_codec.h"
 #include "i_sms_service_interface.h"
-#include "sms_hilog_wrapper.h"
 #include "sms_receive_manager.h"
+#include "telephony_log_wrapper.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 using namespace std;
 SmsSendManager::SmsSendManager(const std::shared_ptr<AppExecFwk::EventRunner> &runner, int32_t slotId)
     : AppExecFwk::EventHandler(runner), slotId_(slotId)
@@ -33,25 +37,23 @@ SmsSendManager::~SmsSendManager()
 
 void SmsSendManager::RegisterHandler()
 {
-    rilManager_ = PhoneManager ::GetInstance().phone_[slotId_]->rilManager_;
-    if (rilManager_ == nullptr) {
-        HILOG_INFO("SmsSendManager::RegisterHandler Get RilManager Fail.");
-        return;
+    std::shared_ptr<Core> core = GetCore();
+    if (core != nullptr) {
+        TELEPHONY_LOGI("SmsSendManager::RegisterHandler Ok.");
+        core->RegisterPhoneNotify(shared_from_this(), ObserverHandler::RADIO_ON, nullptr);
+        core->RegisterPhoneNotify(shared_from_this(), ObserverHandler::RADIO_NETWORK_STATE, nullptr);
+        core->RegisterPhoneNotify(shared_from_this(), ObserverHandler::RADIO_IMS_NETWORK_STATE_CHANGED, nullptr);
+        GetRadioState();
     }
-
-    HILOG_INFO("SmsSendManager::RegisterHandler Ok.");
-    rilManager_->RegisterPhoneNotify(shared_from_this(), ObserverHandler::RADIO_ON, nullptr);
-    rilManager_->RegisterPhoneNotify(shared_from_this(), ObserverHandler::RADIO_NETWORK_STATE, nullptr);
-    rilManager_->RegisterPhoneNotify(shared_from_this(), ObserverHandler::RADIO_IMS_NETWORK_STATE_CHANGED, nullptr);
-    HandlerRadioState();
 }
 
 void SmsSendManager::UnRegisterHandler()
 {
-    if (rilManager_ != nullptr) {
-        rilManager_->UnRegisterPhoneNotify(ObserverHandler::RADIO_ON);
-        rilManager_->UnRegisterPhoneNotify(ObserverHandler::RADIO_NETWORK_STATE);
-        rilManager_->UnRegisterPhoneNotify(ObserverHandler::RADIO_IMS_NETWORK_STATE_CHANGED);
+    std::shared_ptr<Core> core = GetCore();
+    if (core != nullptr) {
+        core->UnRegisterPhoneNotify(shared_from_this(), ObserverHandler::RADIO_ON);
+        core->UnRegisterPhoneNotify(shared_from_this(), ObserverHandler::RADIO_NETWORK_STATE);
+        core->UnRegisterPhoneNotify(shared_from_this(), ObserverHandler::RADIO_IMS_NETWORK_STATE_CHANGED);
     }
 }
 
@@ -59,13 +61,13 @@ void SmsSendManager::Init()
 {
     gsmSmsSendRunner_ = AppExecFwk::EventRunner::Create("gsmSmsSenderLoop" + to_string(slotId_));
     if (gsmSmsSendRunner_ == nullptr) {
-        HILOG_ERROR("failed to create GsmSenderEventRunner");
+        TELEPHONY_LOGE("failed to create GsmSenderEventRunner");
         return;
     }
     gsmSmsSender_ = std::make_shared<GsmSmsSender>(
         gsmSmsSendRunner_, slotId_, bind(&SmsSendManager::RetriedSmsDelivery, this, placeholders::_1));
     if (gsmSmsSender_ == nullptr) {
-        HILOG_ERROR("failed to create GsmSmsSender");
+        TELEPHONY_LOGE("failed to create GsmSmsSender");
         return;
     }
     gsmSmsSender_->Init();
@@ -73,46 +75,48 @@ void SmsSendManager::Init()
 
     cdmaSmsSendRunner_ = AppExecFwk::EventRunner::Create("cdmaSmsSenderLoop" + to_string(slotId_));
     if (cdmaSmsSendRunner_ == nullptr) {
-        HILOG_ERROR("failed to create CdmaSenderEventRunner");
+        TELEPHONY_LOGE("failed to create CdmaSenderEventRunner");
         return;
     }
     cdmaSmsSender_ = std::make_shared<CdmaSmsSender>(
         cdmaSmsSendRunner_, slotId_, bind(&SmsSendManager::RetriedSmsDelivery, this, placeholders::_1));
     if (cdmaSmsSender_ == nullptr) {
-        HILOG_ERROR("failed to create CdmaSmsSender");
+        TELEPHONY_LOGE("failed to create CdmaSmsSender");
         return;
     }
     cdmaSmsSendRunner_->Run();
     RegisterHandler();
-    HILOG_INFO("Init SmsSenderHandler start successfully.");
+    TELEPHONY_LOGI("Init SmsSenderHandler start successfully.");
 }
 
 void SmsSendManager::TextBasedSmsDelivery(const string &desAddr, const string &scAddr, const string &text,
-    const sptr<ISendShortMessageCallback> &sendCallback, const sptr<IDeliveryShortMessageCallback> &deliverCallback)
+    const sptr<ISendShortMessageCallback> &sendCallback,
+    const sptr<IDeliveryShortMessageCallback> &deliveryCallback)
 {
     NetWorkType netWorkType = GetNetWorkType();
     if (netWorkType == NetWorkType::NET_TYPE_GSM) {
-        gsmSmsSender_->TextBasedSmsDelivery(desAddr, scAddr, text, sendCallback, deliverCallback);
+        gsmSmsSender_->TextBasedSmsDelivery(desAddr, scAddr, text, sendCallback, deliveryCallback);
     } else if (netWorkType == NetWorkType::NET_TYPE_CDMA) {
-        cdmaSmsSender_->TextBasedSmsDelivery(desAddr, scAddr, text, sendCallback, deliverCallback);
+        cdmaSmsSender_->TextBasedSmsDelivery(desAddr, scAddr, text, sendCallback, deliveryCallback);
     }
 }
 
 void SmsSendManager::DataBasedSmsDelivery(const string &desAddr, const string &scAddr, uint16_t port,
     const uint8_t *data, uint16_t dataLen, const sptr<ISendShortMessageCallback> &sendCallback,
-    const sptr<IDeliveryShortMessageCallback> &deliverCallback)
+    const sptr<IDeliveryShortMessageCallback> &deliveryCallback)
 {
     NetWorkType netWorkType = GetNetWorkType();
     if (netWorkType == NetWorkType::NET_TYPE_GSM) {
-        gsmSmsSender_->DataBasedSmsDelivery(desAddr, scAddr, port, data, dataLen, sendCallback, deliverCallback);
+        gsmSmsSender_->DataBasedSmsDelivery(desAddr, scAddr, port, data, dataLen, sendCallback, deliveryCallback);
     } else if (netWorkType == NetWorkType::NET_TYPE_CDMA) {
-        cdmaSmsSender_->DataBasedSmsDelivery(desAddr, scAddr, port, data, dataLen, sendCallback, deliverCallback);
+        cdmaSmsSender_->DataBasedSmsDelivery(desAddr, scAddr, port, data, dataLen, sendCallback, deliveryCallback);
     }
 }
 
 void SmsSendManager::RetriedSmsDelivery(const shared_ptr<SmsSendIndexer> smsIndexer)
 {
     if (smsIndexer == nullptr) {
+        TELEPHONY_LOGE("smsIndexer is nullptr");
         return;
     }
     NetWorkType oldNetWorkType = smsIndexer->GetNetWorkType();
@@ -142,22 +146,19 @@ void SmsSendManager::RetriedSmsDelivery(const shared_ptr<SmsSendIndexer> smsInde
                 }
                 break;
             default:
-                HILOG_INFO("Network Unknown.");
+                TELEPHONY_LOGI("Network Unknown.");
                 if (smsIndexer->GetSendCallback() != nullptr) {
                     smsIndexer->GetSendCallback()->OnSmsSendResult(
                         ISendShortMessageCallback::SEND_SMS_FAILURE_SERVICE_UNAVAILABLE);
                 }
                 break;
         }
-        return;
-    }
-
-    smsIndexer->SetNetWorkType(newNetWorkType);
-    NetWorkType netWorkType = GetNetWorkType();
-    if (netWorkType == NetWorkType::NET_TYPE_GSM) {
-        gsmSmsSender_->SendSmsToRil(smsIndexer);
-    } else if (netWorkType == NetWorkType::NET_TYPE_CDMA) {
-        cdmaSmsSender_->SendSmsToRil(smsIndexer);
+    } else {
+        if (newNetWorkType == NetWorkType::NET_TYPE_GSM) {
+            gsmSmsSender_->SendSmsToRil(smsIndexer);
+        } else if (newNetWorkType == NetWorkType::NET_TYPE_CDMA) {
+            cdmaSmsSender_->SendSmsToRil(smsIndexer);
+        }
     }
 }
 
@@ -172,44 +173,72 @@ NetWorkType SmsSendManager::GetNetWorkType()
     return netWorkType;
 }
 
-void SmsSendManager::HandlerRadioState()
+void SmsSendManager::HandlerRadioState(const AppExecFwk::InnerEvent::Pointer &event)
 {
-    if (rilManager_ != nullptr) {
-        OHOS::ModemPowerState radioState = rilManager_->GetRadioState();
-        switch (radioState) {
-            case OHOS::ModemPowerState::CORE_SERVICE_POWER_ON:
-                HILOG_INFO("SmsSendManager::HandlerRadioState RADIO_ON");
-                netDomainType_ = NetDomainType::NET_DOMAIN_CS;
-                csNetWorkType_ = NetWorkType::NET_TYPE_GSM;
-                break;
-            case OHOS::ModemPowerState::CORE_SERVICE_POWER_NOT_AVAILABLE:
-            case OHOS::ModemPowerState::CORE_SERVICE_POWER_OFF:
-            default: {
-                HILOG_INFO("SmsSendManager::HandlerRadioState RADIO_OFF");
-                netDomainType_ = NetDomainType::NET_DOMAIN_UNKOWN;
-                csNetWorkType_ = NetWorkType::NET_TYPE_UNKOWN;
-                break;
-            }
-        }
+    if (event == nullptr) {
+        TELEPHONY_LOGE("HandlerRadioState event == nullptr");
+        return;
+    }
+    int64_t radioState = event->GetParam();
+    switch (radioState) {
+        case OHOS::Telephony::ModemPowerState::CORE_SERVICE_POWER_ON:
+            TELEPHONY_LOGI("SmsSendManager::HandlerRadioState RADIO_ON");
+            netDomainType_ = NetDomainType::NET_DOMAIN_CS;
+            csNetWorkType_ = NetWorkType::NET_TYPE_GSM;
+            break;
+        case OHOS::Telephony::ModemPowerState::CORE_SERVICE_POWER_NOT_AVAILABLE:
+        case OHOS::Telephony::ModemPowerState::CORE_SERVICE_POWER_OFF:
+        default:
+            TELEPHONY_LOGI("SmsSendManager::HandlerRadioState RADIO_OFF");
+            netDomainType_ = NetDomainType::NET_DOMAIN_UNKNOWN;
+            csNetWorkType_ = NetWorkType::NET_TYPE_UNKNOWN;
+            break;
+    }
+}
+
+void SmsSendManager::GetRadioState()
+{
+    std::shared_ptr<Core> core = GetCore();
+    auto event = AppExecFwk::InnerEvent::Get(ObserverHandler::RADIO_GET_STATUS);
+    if (event != nullptr && core != nullptr) {
+        event->SetOwner(shared_from_this());
+        core->GetRadioStatus(event);
     }
 }
 
 void SmsSendManager::ProcessEvent(const AppExecFwk::InnerEvent::Pointer &event)
 {
+    if (event == nullptr) {
+        TELEPHONY_LOGE("SmsSendManager::ProcessEvent event == nullptr");
+        return;
+    }
+
     int eventId = 0;
     eventId = event->GetInnerEventId();
-    HILOG_INFO("SmsSendManager::ProcessEvent Handler Rec%{pulbic}d", eventId);
+    TELEPHONY_LOGI("SmsSendManager::ProcessEvent Handler Rec%{public}d", eventId);
     switch (eventId) {
         case ObserverHandler::RADIO_ON:
         case ObserverHandler::RADIO_NETWORK_STATE:
         case ObserverHandler::RADIO_IMS_NETWORK_STATE_CHANGED:
-            HandlerRadioState();
+            GetRadioState();
             break;
         case ObserverHandler::RADIO_RIL_IMS_REGISTRATION_STATE:
+            break;
+        case ObserverHandler::RADIO_GET_STATUS:
+            HandlerRadioState(event);
             break;
         default:
             break;
     }
 }
-} // namespace SMS
+
+std::shared_ptr<Core> SmsSendManager::GetCore() const
+{
+    std::shared_ptr<Core> core = CoreManager::GetInstance().getCore(slotId_);
+    if (core != nullptr && core->IsInitCore()) {
+        return core;
+    }
+    return nullptr;
+}
+} // namespace Telephony
 } // namespace OHOS

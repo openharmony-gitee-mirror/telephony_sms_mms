@@ -13,19 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef NAPI_UTIL_H
-#define NAPI_UTIL_H
+#ifndef SMS_CB_MESSAGE_TEST_H
+#define SMS_CB_MESSAGE_TEST_H
+
 #include <string>
-#include "napi/native_api.h"
-#include "napi/native_node_api.h"
+
 namespace OHOS {
-namespace TelephonyNapi {
-class NapiUtil {
+namespace Telephony {
+class SmsCbMessageTest {
 public:
-    static napi_value CreateErrorMessage(napi_env env, std::string message);
-    static napi_value CreateUndefined(napi_env env);
-    static std::string ToUtf8(std::u16string str16);
+    void ProcessTest() const;
+    void ProcessInput(bool &loopFlag) const;
+    void TestUMTSMessage() const;
+    void TestEtwsNormal() const;
+    void TestEtwsCancel() const;
+    void TestEtwsTest() const;
+
+private:
 };
-} // namespace TelephonyNapi
+} // namespace Telephony
 } // namespace OHOS
-#endif // NAPI_UTIL_H
+#endif // SMS_CB_MESSAGE_TEST_H

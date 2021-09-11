@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "gsm_sms_param_codec.h"
+
 #include <cstdio>
 #include <cstring>
 #include <ctime>
 #include <memory>
+
 #include "gsm_sms_udata_codec.h"
 #include "msg_text_convert.h"
 #include "securec.h"
-#include "sms_hilog_wrapper.h"
+#include "sms_common_utils.h"
+#include "telephony_log_wrapper.h"
+
 namespace OHOS {
-namespace SMS {
+namespace Telephony {
 int GsmSmsParamCodec::EncodeAddress(const struct SmsAddress *pAddress, char **ppParam)
 {
     int offset = 0;
@@ -40,7 +45,7 @@ int GsmSmsParamCodec::EncodeAddress(const struct SmsAddress *pAddress, char **pp
     }
 
     if (memset_s(tempParam, sizeof(char) * MAX_ADD_PARAM_LEN, 0x00, sizeof(char) * MAX_ADD_PARAM_LEN) != EOK) {
-        HILOG_ERROR("textData memset_s error!");
+        TELEPHONY_LOGE("textData memset_s error!");
     }
     if (temp[0] == '+') {
         tempParam[offset++] = strlen(temp) - 1;
@@ -53,8 +58,8 @@ int GsmSmsParamCodec::EncodeAddress(const struct SmsAddress *pAddress, char **pp
 
     /* Set TON, NPI */
     tempParam[offset++] = 0x80 + (ton << 0x04) + pAddress->npi;
-    HILOG_INFO("Address length is %{public}d.", tempParam[0]);
-    length = ConvertDigitToBcd(temp, strlen(temp), (unsigned char *)&(tempParam[offset]));
+    TELEPHONY_LOGI("Address length is %{public}d.", tempParam[0]);
+    length = SmsCommonUtils::DigitToBcd(temp, strlen(temp), (unsigned char *)&(tempParam[offset]));
     if (length >= 0) {
         offset += length;
     }
@@ -76,11 +81,11 @@ int GsmSmsParamCodec::EncodeSMSC(const char *pAddress, unsigned char *pEncodeAdd
         ret = strncpy_s(newAddr, sizeof(newAddr), pAddress, MAX_SMSC_LEN);
     }
     if (ret != EOK) {
-        HILOG_ERROR("EncodeSMSC error!");
+        TELEPHONY_LOGE("EncodeSMSC error!");
         return 0;
     }
     /* Set Address */
-    int encodeLen = ConvertDigitToBcd(newAddr, strlen(newAddr), pEncodeAddr);
+    int encodeLen = SmsCommonUtils::DigitToBcd(newAddr, strlen(newAddr), pEncodeAddr);
     if (encodeLen < 0) {
         return 0;
     }
@@ -104,7 +109,7 @@ int GsmSmsParamCodec::EncodeSMSC(const struct SmsAddress *pAddress, unsigned cha
         ret = memcpy_s(newAddr, sizeof(newAddr), pAddress->address, strlen(pAddress->address));
     }
     if (ret != EOK) {
-        HILOG_ERROR("EncodeSMSC memory copy error!");
+        TELEPHONY_LOGE("EncodeSMSC memory copy error!");
     }
     addrLen = strlen(newAddr);
     if (addrLen % HEX_BYTE_STEP == 0) {
@@ -113,8 +118,8 @@ int GsmSmsParamCodec::EncodeSMSC(const struct SmsAddress *pAddress, unsigned cha
         dataSize = HEX_BYTE_STEP + (addrLen / HEX_BYTE_STEP) + 1;
     }
     if (dataSize > MAX_SMSC_LEN || dataSize > smscLen) {
-        HILOG_INFO("addrLen is too long [%{public}d]", addrLen);
-        HILOG_INFO("dataSize is too long [%{public}d]", dataSize);
+        TELEPHONY_LOGI("addrLen is too long [%{public}d]", addrLen);
+        TELEPHONY_LOGI("dataSize is too long [%{public}d]", dataSize);
         return 0;
     }
     /* Set Address Length Check IPC 4.0 -> addrLen/2 */
@@ -122,7 +127,7 @@ int GsmSmsParamCodec::EncodeSMSC(const struct SmsAddress *pAddress, unsigned cha
     /* Set TON, NPI */
     pSMSC[1] = 0x80 + ((unsigned char)pAddress->ton << 0x04) + pAddress->npi;
     /* Set Address */
-    ConvertDigitToBcd(newAddr, addrLen, &(pSMSC[0x02]));
+    SmsCommonUtils::DigitToBcd(newAddr, addrLen, &(pSMSC[0x02]));
     pSMSC[dataSize] = '\0';
     return dataSize;
 }
@@ -140,25 +145,25 @@ int GsmSmsParamCodec::EncodeTime(const struct SmsTimeStamp *pTimeStamp, char **p
         if (*ppParam == nullptr) {
             return offset;
         }
-        (*ppParam)[offset++] = ((pTimeStamp->time.absolute.year % numberTen_) << 0x04) +
-            (pTimeStamp->time.absolute.year / numberTen_);
-        (*ppParam)[offset++] = ((pTimeStamp->time.absolute.month % numberTen_) << 0x04) +
-            (pTimeStamp->time.absolute.month / numberTen_);
+        (*ppParam)[offset++] = ((pTimeStamp->time.absolute.year % NUMBER_TEN) << 0x04) +
+            (pTimeStamp->time.absolute.year / NUMBER_TEN);
+        (*ppParam)[offset++] = ((pTimeStamp->time.absolute.month % NUMBER_TEN) << 0x04) +
+            (pTimeStamp->time.absolute.month / NUMBER_TEN);
         (*ppParam)[offset++] =
-            ((pTimeStamp->time.absolute.day % numberTen_) << 0x04) + (pTimeStamp->time.absolute.day / numberTen_);
-        (*ppParam)[offset++] = ((pTimeStamp->time.absolute.hour % numberTen_) << 0x04) +
-            (pTimeStamp->time.absolute.hour / numberTen_);
-        (*ppParam)[offset++] = ((pTimeStamp->time.absolute.minute % numberTen_) << 0x04) +
-            (pTimeStamp->time.absolute.minute / numberTen_);
-        (*ppParam)[offset++] = ((pTimeStamp->time.absolute.second % numberTen_) << 0x04) +
-            (pTimeStamp->time.absolute.second / numberTen_);
+            ((pTimeStamp->time.absolute.day % NUMBER_TEN) << 0x04) + (pTimeStamp->time.absolute.day / NUMBER_TEN);
+        (*ppParam)[offset++] = ((pTimeStamp->time.absolute.hour % NUMBER_TEN) << 0x04) +
+            (pTimeStamp->time.absolute.hour / NUMBER_TEN);
+        (*ppParam)[offset++] = ((pTimeStamp->time.absolute.minute % NUMBER_TEN) << 0x04) +
+            (pTimeStamp->time.absolute.minute / NUMBER_TEN);
+        (*ppParam)[offset++] = ((pTimeStamp->time.absolute.second % NUMBER_TEN) << 0x04) +
+            (pTimeStamp->time.absolute.second / NUMBER_TEN);
 
         if (timeZone < 0) {
             timeZone *= -1;
             (*ppParam)[offset] = 0x08;
         }
-        (*ppParam)[offset++] += ((unsigned int)(pTimeStamp->time.absolute.timeZone % numberTen_) << 0x04) +
-            (pTimeStamp->time.absolute.timeZone / numberTen_);
+        (*ppParam)[offset++] += ((unsigned int)(pTimeStamp->time.absolute.timeZone % NUMBER_TEN) << 0x04) +
+            (pTimeStamp->time.absolute.timeZone / NUMBER_TEN);
 
         return offset;
     } else if (pTimeStamp->format == SMS_TIME_RELATIVE) {
@@ -169,7 +174,7 @@ int GsmSmsParamCodec::EncodeTime(const struct SmsTimeStamp *pTimeStamp, char **p
         ret = memcpy_s(
             *ppParam, MAX_REL_TIME_PARAM_LEN + 1, &(pTimeStamp->time.relative.time), MAX_REL_TIME_PARAM_LEN);
         if (ret != EOK) {
-            HILOG_ERROR("EncodeTime memcpy_s error!");
+            TELEPHONY_LOGE("EncodeTime memcpy_s error!");
         }
         return MAX_REL_TIME_PARAM_LEN;
     }
@@ -235,11 +240,11 @@ int GsmSmsParamCodec::DecodeAddress(const unsigned char *pTpdu, struct SmsAddres
     }
     MsgTextConvert *textCvt = MsgTextConvert::Instance();
     if (textCvt == nullptr) {
-        HILOG_ERROR("MsgTextConvert Instance is nullptr");
+        TELEPHONY_LOGE("MsgTextConvert Instance is nullptr");
         return offset;
     }
     if (memset_s(pAddress->address, sizeof(pAddress->address), 0x00, sizeof(pAddress->address)) != EOK) {
-        HILOG_ERROR("pAddress memset_s error!");
+        TELEPHONY_LOGE("pAddress memset_s error!");
     }
     addrLen = (int)pTpdu[offset++];
     if (addrLen % HEX_BYTE_STEP == 0) {
@@ -255,11 +260,12 @@ int GsmSmsParamCodec::DecodeAddress(const unsigned char *pTpdu, struct SmsAddres
             return offset;
         }
         if (memset_s(tmpAddress, MAX_ADDRESS_LEN, 0x00, MAX_ADDRESS_LEN) != EOK) {
-            HILOG_ERROR("pAddress memset_s error!");
+            TELEPHONY_LOGE("pAddress memset_s error!");
         }
         int tmplength = 0;
-        tmplength = GsmSmsUDataCodec::Unpack7bitChar(&(pTpdu[offset]), (addrLen * 0x04) / 0x07, 0x00, tmpAddress);
-        MSG_LANG_INFO_S langInfo = {0};
+        tmplength = SmsCommonUtils::Unpack7bitChar(
+            &(pTpdu[offset]), (addrLen * 0x04) / 0x07, 0x00, (unsigned char *)tmpAddress);
+        MsgLangInfo langInfo = {0};
         langInfo.bSingleShift = false;
         langInfo.bLockingShift = false;
         textCvt->ConvertGSM7bitToUTF8((unsigned char *)pAddress->address, MAX_ADDRESS_LEN,
@@ -268,12 +274,12 @@ int GsmSmsParamCodec::DecodeAddress(const unsigned char *pTpdu, struct SmsAddres
             delete[] tmpAddress;
         }
     } else if (pAddress->ton == SMS_TON_INTERNATIONAL) {
-        ConvertBcdToDigit(&(pTpdu[offset]), bcdLen, &((pAddress->address)[1]));
+        SmsCommonUtils::BcdToDigit(&(pTpdu[offset]), bcdLen, &((pAddress->address)[1]));
         if (pAddress->address[1] != '\0') {
             pAddress->address[0] = '+';
         }
     } else {
-        ConvertBcdToDigit(&(pTpdu[offset]), bcdLen, &((pAddress->address)[0]));
+        SmsCommonUtils::BcdToDigit(&(pTpdu[offset]), bcdLen, &((pAddress->address)[0]));
     }
 
     offset += bcdLen;
@@ -289,25 +295,25 @@ int GsmSmsParamCodec::DecodeTime(const unsigned char *pTpdu, struct SmsTimeStamp
     /* decode in ABSOLUTE time type. */
     pTimeStamp->format = SMS_TIME_ABSOLUTE;
 
-    pTimeStamp->time.absolute.year = (pTpdu[offset] & 0x0F) * numberTen_ + ((pTpdu[offset] & 0xF0) >> 0x04);
+    pTimeStamp->time.absolute.year = (pTpdu[offset] & 0x0F) * NUMBER_TEN + ((pTpdu[offset] & 0xF0) >> 0x04);
     offset++;
 
-    pTimeStamp->time.absolute.month = (pTpdu[offset] & 0x0F) * numberTen_ + ((pTpdu[offset] & 0xF0) >> 0x04);
+    pTimeStamp->time.absolute.month = (pTpdu[offset] & 0x0F) * NUMBER_TEN + ((pTpdu[offset] & 0xF0) >> 0x04);
     offset++;
 
-    pTimeStamp->time.absolute.day = (pTpdu[offset] & 0x0F) * numberTen_ + ((pTpdu[offset] & 0xF0) >> 0x04);
+    pTimeStamp->time.absolute.day = (pTpdu[offset] & 0x0F) * NUMBER_TEN + ((pTpdu[offset] & 0xF0) >> 0x04);
     offset++;
 
-    pTimeStamp->time.absolute.hour = (pTpdu[offset] & 0x0F) * numberTen_ + ((pTpdu[offset] & 0xF0) >> 0x04);
+    pTimeStamp->time.absolute.hour = (pTpdu[offset] & 0x0F) * NUMBER_TEN + ((pTpdu[offset] & 0xF0) >> 0x04);
     offset++;
 
-    pTimeStamp->time.absolute.minute = (pTpdu[offset] & 0x0F) * numberTen_ + ((pTpdu[offset] & 0xF0) >> 0x04);
+    pTimeStamp->time.absolute.minute = (pTpdu[offset] & 0x0F) * NUMBER_TEN + ((pTpdu[offset] & 0xF0) >> 0x04);
     offset++;
 
-    pTimeStamp->time.absolute.second = (pTpdu[offset] & 0x0F) * numberTen_ + ((pTpdu[offset] & 0xF0) >> 0x04);
+    pTimeStamp->time.absolute.second = (pTpdu[offset] & 0x0F) * NUMBER_TEN + ((pTpdu[offset] & 0xF0) >> 0x04);
     offset++;
 
-    pTimeStamp->time.absolute.timeZone = (pTpdu[offset] & 0x07) * numberTen_ + ((pTpdu[offset] & 0xF0) >> 0x04);
+    pTimeStamp->time.absolute.timeZone = (pTpdu[offset] & 0x07) * NUMBER_TEN + ((pTpdu[offset] & 0xF0) >> 0x04);
 
     if (pTpdu[offset] & 0x08) {
         pTimeStamp->time.absolute.timeZone *= (-1);
@@ -316,7 +322,7 @@ int GsmSmsParamCodec::DecodeTime(const unsigned char *pTpdu, struct SmsTimeStamp
     return offset;
 }
 
-static enum SMS_MSG_CLASS_E ParseMsgClasse(unsigned char dcs)
+static enum SmsMessageClass ParseMsgClass(unsigned char dcs)
 {
     switch (dcs & 0x03) {
         case SMS_INSTANT_MESSAGE:
@@ -332,7 +338,7 @@ static enum SMS_MSG_CLASS_E ParseMsgClasse(unsigned char dcs)
     }
 }
 
-static SMS_CODING_SCHEME_E ParseMsgCodingScheme(unsigned char dcs)
+static SmsCodingScheme ParseMsgCodingScheme(unsigned char dcs)
 {
     switch (dcs & 0x03) {
         case SMS_CODING_7BIT:
@@ -348,7 +354,7 @@ static SMS_CODING_SCHEME_E ParseMsgCodingScheme(unsigned char dcs)
     }
 }
 
-static SMS_INDICATOR_TYPE_E ParseMsgIndicatorType(const unsigned char dcs)
+static SmsIndicatorType ParseMsgIndicatorType(const unsigned char dcs)
 {
     switch (dcs & 0x03) {
         case SMS_VOICE_INDICATOR:
@@ -386,18 +392,18 @@ int GsmSmsParamCodec::DecodeDCS(const unsigned char *pTpdu, struct SmsDcs *pDCS)
     if (((dcs & 0xC0) >> 0x06) == 0) {
         pDCS->codingGroup = SMS_GENERAL_GROUP;
         pDCS->bCompressed = (dcs & 0x20) >> 0x05;
-        pDCS->codingScheme = ParseMsgCodingScheme((dcs & 0x0C) >> 2);
+        pDCS->codingScheme = ParseMsgCodingScheme((dcs & 0x0C) >> 0x02);
 
         if (((dcs & 0x10) >> 0x04) == 0) {
             pDCS->msgClass = SMS_CLASS_UNKNOWN;
         } else {
-            pDCS->msgClass = ParseMsgClasse(dcs & 0x03);
+            pDCS->msgClass = ParseMsgClass(dcs & 0x03);
         }
     } else if (((dcs & 0xF0) >> 0x04) == 0x0F) {
         pDCS->codingGroup = SMS_CODING_CLASS_GROUP;
         pDCS->bCompressed = false;
-        pDCS->codingScheme = ParseMsgCodingScheme((dcs & 0x0C) >> 2);
-        pDCS->msgClass = ParseMsgClasse(dcs & 0x03);
+        pDCS->codingScheme = ParseMsgCodingScheme((dcs & 0x0C) >> 0x02);
+        pDCS->msgClass = ParseMsgClass(dcs & 0x03);
     } else if (((dcs & 0xC0) >> 0x06) == 1) {
         pDCS->codingGroup = SMS_DELETION_GROUP;
         pDCS->bCompressed = false;
@@ -423,7 +429,7 @@ int GsmSmsParamCodec::DecodeDCS(const unsigned char *pTpdu, struct SmsDcs *pDCS)
     return offset;
 }
 
-void GsmSmsParamCodec::DecodeSMSC(unsigned char *pAddress, int AddrLen, enum SMS_TON_E ton, char *pDecodeAddr)
+void GsmSmsParamCodec::DecodeSMSC(unsigned char *pAddress, int AddrLen, enum SmsTon ton, char *pDecodeAddr)
 {
     if (pAddress == nullptr || AddrLen == 0) {
         return;
@@ -433,13 +439,13 @@ void GsmSmsParamCodec::DecodeSMSC(unsigned char *pAddress, int AddrLen, enum SMS
     }
     if (ton == SMS_TON_INTERNATIONAL) {
         pDecodeAddr[0] = '+';
-        ConvertBcdToDigit(pAddress, AddrLen, &(pDecodeAddr[1]));
+        SmsCommonUtils::BcdToDigit(pAddress, AddrLen, &(pDecodeAddr[1]));
     } else {
-        ConvertBcdToDigit(pAddress, AddrLen, pDecodeAddr);
+        SmsCommonUtils::BcdToDigit(pAddress, AddrLen, pDecodeAddr);
     }
 }
 
-int GsmSmsParamCodec::DecodeSMSC(const unsigned char *pTpdu, struct SmsAddress &pAddress)
+int GsmSmsParamCodec::DecodeSMSC(const unsigned char *pTpdu, int pduLen, struct SmsAddress &pAddress)
 {
     int offset = 0;
     int addrLen = 0;
@@ -447,99 +453,31 @@ int GsmSmsParamCodec::DecodeSMSC(const unsigned char *pTpdu, struct SmsAddress &
         return offset;
     }
     if (memset_s(pAddress.address, sizeof(pAddress.address), 0x00, sizeof(pAddress.address)) != EOK) {
-        HILOG_ERROR("textData memset_s error!");
+        TELEPHONY_LOGE("textData memset_s error!");
     }
     addrLen = (int)pTpdu[offset++];
+    if ((addrLen == 0) || (addrLen >= pduLen)) {
+        return offset;
+    }
+
     pAddress.ton = (pTpdu[offset] & 0x70) >> 0x04;
     pAddress.npi = pTpdu[offset++] & 0x0F;
-
     if (pAddress.ton == SMS_TON_INTERNATIONAL) {
-        ConvertBcdToDigit(&(pTpdu[offset]), addrLen, &((pAddress.address)[1]));
+        if (addrLen > (SMS_MAX_ADDRESS_LEN - 1)) {
+            return 0;
+        }
+        SmsCommonUtils::BcdToDigit(&(pTpdu[offset]), addrLen, &((pAddress.address)[1]));
         if (pAddress.address[1] != '\0') {
             pAddress.address[0] = '+';
         }
     } else {
-        ConvertBcdToDigit(&(pTpdu[offset]), addrLen, &((pAddress.address)[0]));
+        if (addrLen > SMS_MAX_ADDRESS_LEN) {
+            return 0;
+        }
+        SmsCommonUtils::BcdToDigit(&(pTpdu[offset]), addrLen, &((pAddress.address)[0]));
     }
 
     offset += (addrLen - 1);
-    return offset;
-}
-
-int GsmSmsParamCodec::ConvertDigitToBcd(const char *pDigit, int DigitLen, unsigned char *pBcd)
-{
-    int offset = 0;
-    unsigned char temp;
-    if (pDigit == nullptr) {
-        return offset;
-    }
-    for (int i = 0; i < DigitLen; i++) {
-        switch (pDigit[i]) {
-            case '*':
-                temp = 0x0A;
-                break;
-            case '#':
-                temp = 0x0B;
-                break;
-            case 'P':
-            case 'p':
-                temp = 0x0C;
-                break;
-            default:
-                temp = pDigit[i] - '0';
-                break;
-        }
-        if ((i % HEX_BYTE_STEP) == 0) {
-            pBcd[offset] = temp & 0x0F;
-        } else {
-            pBcd[offset++] |= ((temp & 0x0F) << 0x04);
-        }
-    }
-
-    if ((DigitLen % HEX_BYTE_STEP) == 1) {
-        pBcd[offset++] |= 0xF0;
-    }
-    return offset;
-}
-
-char GsmSmsParamCodec::ConvertBcdToChar(const unsigned char c)
-{
-    char temp = 0;
-    switch (c) {
-        case 0x0A:
-            temp = '*';
-            break;
-        case 0x0B:
-            temp = '#';
-            break;
-        case 0x0C:
-            temp = 'P';
-            break;
-        default:
-            temp = c + '0';
-            break;
-    }
-    return temp;
-}
-
-int GsmSmsParamCodec::ConvertBcdToDigit(const unsigned char *pBcd, int BcdLen, char *pDigit)
-{
-    int offset = 0;
-    unsigned char temp;
-    if (pBcd == nullptr || pDigit == nullptr) {
-        return offset;
-    }
-    for (int i = 0; i < BcdLen; i++) {
-        temp = pBcd[i] & 0x0F;
-        pDigit[offset++] = ConvertBcdToChar(temp);
-        temp = (pBcd[i] & 0xF0) >> 0x04;
-        if (temp == 0x0F) {
-            pDigit[offset] = '\0';
-            return offset;
-        }
-        pDigit[offset++] = ConvertBcdToChar(temp);
-    }
-    pDigit[offset] = '\0';
     return offset;
 }
 
@@ -554,7 +492,7 @@ bool GsmSmsParamCodec::CheckCphsVmiMsg(const unsigned char *pTpdu, int *setType,
     addrLen = (int)pTpdu[offset++];
     if (addrLen == 0x04 && pTpdu[offset++] == 0xD0) {
         if (pTpdu[offset] == 0x11 || pTpdu[offset] == 0x10) {
-            HILOG_INFO("####### VMI msg ######");
+            TELEPHONY_LOGI("####### VMI msg ######");
             *setType = (int)(pTpdu[offset] & 0x01); /* 0 : clear, 1 : set */
             *indType = (int)(pTpdu[offset + 1] & 0x01); /* 0 : indicator 1, 1 : indicator 2 */
             ret = true;
@@ -562,95 +500,5 @@ bool GsmSmsParamCodec::CheckCphsVmiMsg(const unsigned char *pTpdu, int *setType,
     }
     return ret;
 }
-
-using MTime = struct {
-    unsigned int year0;
-    unsigned int mon0;
-    unsigned int day;
-    unsigned int hour;
-    unsigned int min;
-    unsigned int sec;
-};
-
-long long MkTime(const MTime &time)
-{
-    unsigned int mon = time.mon0;
-    unsigned int year = time.year0;
-    /* 1..12 -> 11,12,1..10 */
-    if (static_cast<int>(mon -= 0x02) <= 0) {
-        mon += YEARY_OF_MON; /* Puts Feb last since it has leap day */
-        year -= 1;
-    }
-    auto days = static_cast<long long>(year / 0x04 - year / 0x64 + year / 0x190 + 0x16F * mon / 0x12 + time.day);
-    return (((days + year * 0x16D - 0x0AFA8B) * 0x18 + time.hour) * 0x3C + time.min) * 0x3C + time.sec;
-}
-
-long GsmSmsParamCodec::ConvertTime(const struct SmsTimeStamp *time_stamp)
-{
-    time_t rawtime;
-    if (time_stamp == nullptr) {
-        return 0;
-    }
-    if (time_stamp->format == SMS_TIME_ABSOLUTE) {
-        DebugTimeStamp(*time_stamp);
-        char displayTime[MAX_TIME_LEN];
-        struct tm timeTM;
-        (void)memset_s(&timeTM, sizeof(struct tm), 0x00, sizeof(tm));
-        struct tm timeinfo;
-        (void)memset_s(&timeinfo, sizeof(struct tm), 0x00, sizeof(tm));
-
-        timeinfo.tm_year = (time_stamp->time.absolute.year + 0x64);
-        timeinfo.tm_mon = (time_stamp->time.absolute.month - 0x01);
-        timeinfo.tm_mday = time_stamp->time.absolute.day;
-        timeinfo.tm_hour = time_stamp->time.absolute.hour;
-        timeinfo.tm_min = time_stamp->time.absolute.minute;
-        timeinfo.tm_sec = time_stamp->time.absolute.second;
-        timeinfo.tm_isdst = 0;
-        MTime mTime;
-        mTime.year0 = timeinfo.tm_year;
-        mTime.mon0 = timeinfo.tm_mon;
-        mTime.day = timeinfo.tm_mday;
-        mTime.hour = timeinfo.tm_hour;
-        mTime.min = timeinfo.tm_min;
-        mTime.sec = timeinfo.tm_sec;
-        rawtime = MkTime(mTime);
-        (void)memset_s(displayTime, sizeof(displayTime), 0x00, sizeof(displayTime));
-        strftime(displayTime, MAX_TIME_LEN, "%Y-%02m-%02d %T %z", &timeinfo);
-        HILOG_INFO("displayTime [%{public}s]", displayTime);
-
-        rawtime -= (time_stamp->time.absolute.timeZone * (0x0E10 / 0x04));
-
-        localtime_r(&rawtime, &timeTM);
-        (void)memset_s(displayTime, sizeof(displayTime), 0x00, sizeof(displayTime));
-        strftime(displayTime, MAX_TIME_LEN, "%Y-%02m-%02d %T %z", &timeTM);
-        HILOG_INFO("displayTime [%{public}s]", displayTime);
-
-/* timezone value is tiemzone + daylight. So should not add daylight */
-#ifdef __MSG_DAYLIGHT_APPLIED__
-        rawtime -= (timezone - daylight * 0x0E10);
-#else
-        rawtime -= timezone;
-#endif
-        (void)memset_s(&timeTM, sizeof(timeTM), 0x00, sizeof(tm));
-        localtime_r(&rawtime, &timeTM);
-        (void)memset_s(displayTime, sizeof(displayTime), 0x00, sizeof(displayTime));
-        strftime(displayTime, MAX_TIME_LEN, "%Y-%02m-%02d %T %z", &timeTM);
-        HILOG_INFO("displayTime [%{public}s]", displayTime);
-    } else {
-        rawtime = time(NULL);
-    }
-    return rawtime;
-}
-
-void GsmSmsParamCodec::DebugTimeStamp(const struct SmsTimeStamp &time_stamp)
-{
-    HILOG_INFO("year : %{public}d", time_stamp.time.absolute.year);
-    HILOG_INFO("month : %{public}d", time_stamp.time.absolute.month);
-    HILOG_INFO("day : %{public}d", time_stamp.time.absolute.day);
-    HILOG_INFO("hour : %{public}d", time_stamp.time.absolute.hour);
-    HILOG_INFO("minute : %{public}d", time_stamp.time.absolute.minute);
-    HILOG_INFO("second : %{public}d", time_stamp.time.absolute.second);
-    HILOG_INFO("timezone : %{public}d", time_stamp.time.absolute.timeZone);
-}
-} // namespace SMS
+} // namespace Telephony
 } // namespace OHOS

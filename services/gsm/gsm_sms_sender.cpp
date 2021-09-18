@@ -207,7 +207,6 @@ void GsmSmsSender::SendSmsToRil(const shared_ptr<SmsSendIndexer> &smsIndexer)
 void GsmSmsSender::StatusReportAnalysis(const AppExecFwk::InnerEvent::Pointer &event)
 {
     std::shared_ptr<SmsMessageInfo> statusInfo = event->GetSharedObject<SmsMessageInfo>();
-    bool isSent = false;
     if (statusInfo == nullptr) {
         return;
     }
@@ -226,25 +225,22 @@ void GsmSmsSender::StatusReportAnalysis(const AppExecFwk::InnerEvent::Pointer &e
         TELEPHONY_LOGE("gsm_sms_sender: StatusReportAnalysis message nullptr");
         return;
     }
+    sptr<IDeliveryShortMessageCallback> deliveryCallback = nullptr;
     auto oldIndexer = reportList_.begin();
     while (oldIndexer != reportList_.end()) {
         auto iter = oldIndexer++;
         TELEPHONY_LOGI("StatusReport %{public}d %{public}d", message->GetMsgRef(), (*iter)->GetMsgRefId());
         if (*iter != nullptr && (message->GetMsgRef() == (*iter)->GetMsgRefId())) {
             // save the message to db, or updata to db msg state(success or failed)
-            if (!isSent) {
-                core->SendSmsAck(
-                    true, AckIncomeCause::SMS_ACK_PROCESSED, AppExecFwk::InnerEvent::Pointer(nullptr, nullptr));
-                sptr<IDeliveryShortMessageCallback> deliveryCallback = (*iter)->GetDeliveryCallback();
-                if (deliveryCallback != nullptr) {
-                    std::string ackpdu = StringUtils::StringToHex(message->GetRawPdu());
-                    deliveryCallback->OnSmsDeliveryResult(StringUtils::ToUtf16(ackpdu));
-                    TELEPHONY_LOGI("gsm_sms_sender: StatusReportAnalysis %{public}s", pdu.c_str());
-                }
-                isSent = true;
-            }
+            deliveryCallback = (*iter)->GetDeliveryCallback();
             reportList_.erase(iter);
         }
+    }
+    core->SendSmsAck(true, AckIncomeCause::SMS_ACK_PROCESSED, AppExecFwk::InnerEvent::Pointer(nullptr, nullptr));
+    if (deliveryCallback != nullptr) {
+        std::string ackpdu = StringUtils::StringToHex(message->GetRawPdu());
+        deliveryCallback->OnSmsDeliveryResult(StringUtils::ToUtf16(ackpdu));
+        TELEPHONY_LOGI("gsm_sms_sender: StatusReportAnalysis %{public}s", pdu.c_str());
     }
 }
 

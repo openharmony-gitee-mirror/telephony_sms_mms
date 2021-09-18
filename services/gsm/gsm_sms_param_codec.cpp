@@ -322,7 +322,7 @@ int GsmSmsParamCodec::DecodeTime(const unsigned char *pTpdu, struct SmsTimeStamp
     return offset;
 }
 
-static enum SmsMessageClass ParseMsgClasse(unsigned char dcs)
+static enum SmsMessageClass ParseMsgClass(unsigned char dcs)
 {
     switch (dcs & 0x03) {
         case SMS_INSTANT_MESSAGE:
@@ -397,13 +397,13 @@ int GsmSmsParamCodec::DecodeDCS(const unsigned char *pTpdu, struct SmsDcs *pDCS)
         if (((dcs & 0x10) >> 0x04) == 0) {
             pDCS->msgClass = SMS_CLASS_UNKNOWN;
         } else {
-            pDCS->msgClass = ParseMsgClasse(dcs & 0x03);
+            pDCS->msgClass = ParseMsgClass(dcs & 0x03);
         }
     } else if (((dcs & 0xF0) >> 0x04) == 0x0F) {
         pDCS->codingGroup = SMS_CODING_CLASS_GROUP;
         pDCS->bCompressed = false;
         pDCS->codingScheme = ParseMsgCodingScheme((dcs & 0x0C) >> 0x02);
-        pDCS->msgClass = ParseMsgClasse(dcs & 0x03);
+        pDCS->msgClass = ParseMsgClass(dcs & 0x03);
     } else if (((dcs & 0xC0) >> 0x06) == 1) {
         pDCS->codingGroup = SMS_DELETION_GROUP;
         pDCS->bCompressed = false;

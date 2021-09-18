@@ -11,7 +11,7 @@
                 "//base/telephony/sms_mms/sa_profile:sms_mms_sa_profile"
             ],
             "test_list": [
-                "//base/telephony/call_manager/test/unittest:unittest"
+                "//base/telephony/sms_mms/test/gtest:unittest"
             ]
         }
     }

@@ -128,10 +128,7 @@ int main()
         ((remote = systemAbilityMgr->CheckSystemAbility(TELEPHONY_SMS_MMS_SYS_ABILITY_ID)) == nullptr) ||
         ((smsService = iface_cast<ISmsServiceInterface>(remote))) == nullptr) {
         std::cout << "connect to service failed." << std::endl;
-        if (::g_shortMessage != nullptr) {
-            delete ::g_shortMessage;
-            ::g_shortMessage = nullptr;
-        }
+        return 0;
     }
     testFunArray = GetFunArray(smsService);
     if (testFunArray == nullptr || ((caseCount = testFunArray->size()) <= 0)) {
@@ -140,6 +137,7 @@ int main()
             delete ::g_shortMessage;
             ::g_shortMessage = nullptr;
         }
+        return 0;
     }
     for (int index = 0; index < caseCount; ++index) {
         hint += "[" + std::to_string(index) + "]:" + (*testFunArray)[index].funName + "\n";

@@ -26,6 +26,7 @@
 #include "short_message.h"
 #include "napi_util.h"
 #include "short_message_manager.h"
+#include "core_manager.h"
 
 namespace OHOS {
 namespace Telephony {
@@ -80,7 +81,7 @@ static MessageStatus WrapSimMessageStatus(int32_t status)
 
 static int32_t GetDefaultSmsSlotId()
 {
-    return 1;
+    return CoreManager::DEFAULT_SLOT_ID;
 }
 
 static bool MatchObjectProperty(
@@ -121,10 +122,6 @@ static std::u16string GetU16StrFromNapiValue(napi_env env, napi_value value)
 
 static bool ActuallySendMessage(napi_env env, SendMessageContext &parameter)
 {
-    if (parameter.slotId == 0) {
-        TELEPHONY_LOGD("ActuallySendMessage parameter.slotId == 0 illegal slotId");
-        return false;
-    }
     if (parameter.destinationHost.empty()) {
         TELEPHONY_LOGD("ActuallySendMessage destinationHost empty illegal parameter");
         return false;
@@ -168,8 +165,7 @@ static void NativeSendMessage(napi_env env, void *data)
 {
     auto asyncContext = static_cast<SendMessageContext *>(data);
     if (asyncContext != nullptr) {
-        bool isNativeSendMessage = ActuallySendMessage(env, *asyncContext);
-        asyncContext->resolved = isNativeSendMessage;
+        asyncContext->resolved = ActuallySendMessage(env, *asyncContext);
     }
 }
 
@@ -444,9 +440,8 @@ static void NativeSetDefaultSmsSlotId(napi_env env, void *data)
     TELEPHONY_LOGD("NativeSetDefaultSmsSlotId start 1");
     if (IsShortMessageManagerInit()) {
         TELEPHONY_LOGD("NativeSetDefaultSmsSlotId start 2");
-        context->setResult = g_shortMessageManager->SetDefaultSmsSlotId(context->slotId);
+        context->resolved = g_shortMessageManager->SetDefaultSmsSlotId(context->slotId);
         TELEPHONY_LOGD("NativeSetDefaultSmsSlotId context->setResult = %{public}d", context->setResult);
-        context->resolved = true;
     } else {
         context->resolved = false;
     }
@@ -543,7 +538,7 @@ static void NativeGetDefaultSmsSlotId(napi_env env, void *data)
         context->defaultSmsSlotId = g_shortMessageManager->GetDefaultSmsSlotId();
         TELEPHONY_LOGD(
             "NativeGetDefaultSmsSlotId start context->defaultSmsSlotId  = %{public}d", context->defaultSmsSlotId);
-        if (context->defaultSmsSlotId > ShortMessageManager::ERROR_SERVICE_NOT_AVAILABLE) {
+        if (context->defaultSmsSlotId >= CoreManager::SLOT_ID1) {
             context->resolved = true;
         } else {
             context->resolved = false;
@@ -624,10 +619,9 @@ static void NativeSetSmscAddr(napi_env env, void *data)
     auto context = static_cast<SetSmscAddrContext *>(data);
     TELEPHONY_LOGD("NativeSetSmscAddr start 1");
     if (IsShortMessageManagerInit()) {
-        context->setResult =
+        context->resolved =
             g_shortMessageManager->SetScAddress(context->slotId, NapiUtil::ToUtf16(context->smscAddr));
         TELEPHONY_LOGD("NativeSetSmscAddr setResult = %{public}d", context->setResult);
-        context->resolved = true;
     } else {
         context->resolved = false;
     }
@@ -776,10 +770,9 @@ static void NativeAddSimMessage(napi_env env, void *data)
         ISmsServiceInterface::SimMessageStatus status =
             static_cast<ISmsServiceInterface::SimMessageStatus>(wrapStatus);
         if (IsShortMessageManagerInit()) {
-            context->addResult = g_shortMessageManager->AddSimMessage(
+            context->resolved = g_shortMessageManager->AddSimMessage(
                 context->slotId, NapiUtil::ToUtf16(context->smsc), NapiUtil::ToUtf16(context->pdu), status);
-            TELEPHONY_LOGD("NativeAddSimMessage context->addResult = %{public}d", context->addResult);
-            context->resolved = true;
+            TELEPHONY_LOGD("NativeAddSimMessage context->resolved = %{public}d", context->resolved);
         } else {
             context->resolved = false;
         }
@@ -858,8 +851,7 @@ static void NativeDelSimMessage(napi_env env, void *data)
 {
     auto context = static_cast<DelSimMessageContext *>(data);
     if (IsShortMessageManagerInit()) {
-        context->deleteResult = g_shortMessageManager->DelSimMessage(context->slotId, context->msgIndex);
-        context->resolved = true;
+        context->resolved = g_shortMessageManager->DelSimMessage(context->slotId, context->msgIndex);
     } else {
         context->resolved = false;
     }
@@ -938,10 +930,9 @@ static void NativeUpdateSimMessage(napi_env env, void *data)
         if (!context->pdu.empty() && (newStatus > -1)) {
             std::string msgPud(context->pdu.begin(), context->pdu.end());
             TELEPHONY_LOGD("NativeUpdateSimMessage msgPud = %{public}s", msgPud.c_str());
-            context->updateResult = g_shortMessageManager->UpdateSimMessage(context->slotId, context->msgIndex,
+            context->resolved = g_shortMessageManager->UpdateSimMessage(context->slotId, context->msgIndex,
                 static_cast<ISmsServiceInterface::SimMessageStatus>(context->newStatus),
                 NapiUtil::ToUtf16(context->pdu), NapiUtil::ToUtf16(context->smsc));
-            context->resolved = true;
         } else {
             TELEPHONY_LOGD("NativeUpdateSimMessage resolved false cause parameter invalided");
             context->resolved = false;
@@ -1037,6 +1028,17 @@ static void NativeGetAllSimMessages(napi_env env, void *data)
     }
 }
 
+static napi_value CreateSimShortMessageValue(napi_env env, const ShortMessage *shortMessage)
+{
+    napi_value simObject = nullptr;
+    napi_value object = CreateShortMessageValue(env, shortMessage);
+    napi_create_object(env, &simObject);
+    std::string shortMessageKey("shortMessage");
+    napi_set_named_property(env, simObject, shortMessageKey.c_str(), object);
+    NapiUtil::SetPropertyInt32(env, simObject, "SmsSimMessageStatus", shortMessage->GetIccMessageStatus());
+    return simObject;
+}
+
 static void GetAllSimMessagesCallback(napi_env env, napi_status status, void *data)
 {
     auto context = static_cast<GetAllSimMessagesContext *>(data);
@@ -1047,7 +1049,7 @@ static void GetAllSimMessagesCallback(napi_env env, napi_status status, void *da
             int32_t arraySize = static_cast<int32_t>(context->messageArray.size());
             for (int32_t i = 0; i < arraySize; i++) {
                 ShortMessage message = context->messageArray[i];
-                napi_value itemValue = CreateShortMessageValue(env, &message);
+                napi_value itemValue = CreateSimShortMessageValue(env, &message);
                 napi_set_element(env, callbackValue, i, itemValue);
             }
         } else {
@@ -1111,9 +1113,8 @@ static void NativeSetCBConfig(napi_env env, void *data)
 {
     auto context = static_cast<CBConfigContext *>(data);
     if (IsShortMessageManagerInit()) {
-        context->setResult = g_shortMessageManager->SetCBConfig(
+        context->resolved = g_shortMessageManager->SetCBConfig(
             context->slotId, context->enable, context->startMessageId, context->endMessageId, context->ranType);
-        context->resolved = true;
     } else {
         context->resolved = false;
     }
@@ -1173,35 +1174,62 @@ static napi_value SetCBConfig(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value CreateStaticPropertyValue(napi_env env, int32_t nativeValue)
+static napi_value InitEnumSendSmsResult(napi_env env, napi_value exports)
 {
-    napi_value value = nullptr;
-    napi_create_int32(env, nativeValue, &value);
-    return value;
+    napi_property_descriptor desc[] = {
+        DECLARE_NAPI_STATIC_PROPERTY(
+            "SEND_SMS_SUCCESS", NapiUtil::ToInt32Value(env, static_cast<int32_t>(SEND_SMS_SUCCESS))),
+        DECLARE_NAPI_STATIC_PROPERTY("SEND_SMS_FAILURE_UNKNOWN",
+            NapiUtil::ToInt32Value(env, static_cast<int32_t>(SEND_SMS_FAILURE_UNKNOWN))),
+        DECLARE_NAPI_STATIC_PROPERTY("SEND_SMS_FAILURE_RADIO_OFF",
+            NapiUtil::ToInt32Value(env, static_cast<int32_t>(SEND_SMS_FAILURE_RADIO_OFF))),
+        DECLARE_NAPI_STATIC_PROPERTY("SEND_SMS_FAILURE_SERVICE_UNAVAILABLE",
+            NapiUtil::ToInt32Value(env, static_cast<int32_t>(SEND_SMS_FAILURE_SERVICE_UNAVAILABLE))),
+    };
+    NAPI_CALL(env, napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc));
+    return exports;
+}
+
+static napi_value InitEnumShortMessageClass(napi_env env, napi_value exports)
+{
+    napi_property_descriptor desc[] = {
+        DECLARE_NAPI_STATIC_PROPERTY(
+            "UNKNOWN", NapiUtil::ToInt32Value(env, static_cast<int32_t>(ShortMessageClass::UNKNOWN))),
+        DECLARE_NAPI_STATIC_PROPERTY("INSTANT_MESSAGE",
+            NapiUtil::ToInt32Value(env, static_cast<int32_t>(ShortMessageClass::INSTANT_MESSAGE))),
+        DECLARE_NAPI_STATIC_PROPERTY("OPTIONAL_MESSAGE",
+            NapiUtil::ToInt32Value(env, static_cast<int32_t>(ShortMessageClass::OPTIONAL_MESSAGE))),
+        DECLARE_NAPI_STATIC_PROPERTY(
+            "SIM_MESSAGE", NapiUtil::ToInt32Value(env, static_cast<int32_t>(ShortMessageClass::SIM_MESSAGE))),
+        DECLARE_NAPI_STATIC_PROPERTY("FORWARD_MESSAGE",
+            NapiUtil::ToInt32Value(env, static_cast<int32_t>(ShortMessageClass::FORWARD_MESSAGE))),
+    };
+    NAPI_CALL(env, napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc));
+    return exports;
+}
+
+static napi_value InitEnumMessageStatusClass(napi_env env, napi_value exports)
+{
+    napi_property_descriptor desc[] = {
+        DECLARE_NAPI_STATIC_PROPERTY(
+            "MESSAGE_UNKNOWN_STATUS", NapiUtil::ToInt32Value(env, static_cast<int32_t>(MESSAGE_UNKNOWN_STATUS))),
+        DECLARE_NAPI_STATIC_PROPERTY(
+            "MESSAGE_HAVE_READ", NapiUtil::ToInt32Value(env, static_cast<int32_t>(MESSAGE_HAVE_READ))),
+        DECLARE_NAPI_STATIC_PROPERTY(
+            "MESSAGE_UNREAD", NapiUtil::ToInt32Value(env, static_cast<int32_t>(MESSAGE_UNREAD))),
+        DECLARE_NAPI_STATIC_PROPERTY(
+            "MESSAGE_HAS_BEEN_SENT", NapiUtil::ToInt32Value(env, static_cast<int32_t>(MESSAGE_HAS_BEEN_SENT))),
+        DECLARE_NAPI_STATIC_PROPERTY(
+            "MESSAGE_NOT_SENT", NapiUtil::ToInt32Value(env, static_cast<int32_t>(MESSAGE_NOT_SENT))),
+    };
+    NAPI_CALL(env, napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc));
+    return exports;
 }
 
 EXTERN_C_START
 napi_value InitNapiSmsRegistry(napi_env env, napi_value exports)
 {
     g_shortMessageManager = std::make_unique<ShortMessageManager>();
-    napi_value sendSmsSuccess = nullptr;
-    napi_value sendSmsFailureUnknown = nullptr;
-    napi_value sendSmsFailureRadioOff = nullptr;
-    napi_value sendSmsFailureServiceUnavailable = nullptr;
-    napi_create_int32(env, SEND_SMS_SUCCESS, &sendSmsSuccess);
-    napi_create_int32(env, SEND_SMS_FAILURE_UNKNOWN, &sendSmsFailureUnknown);
-    napi_create_int32(env, SEND_SMS_FAILURE_RADIO_OFF, &sendSmsFailureRadioOff);
-    napi_create_int32(env, SEND_SMS_FAILURE_SERVICE_UNAVAILABLE, &sendSmsFailureServiceUnavailable);
-    napi_value shortMessageClassUnknown = nullptr;
-    napi_value shortMessageClassInstantMessage = nullptr;
-    napi_value shortMessageClassOptionalMessage = nullptr;
-    napi_value shortMessageClassSimMessage = nullptr;
-    napi_value shortMessageClassForwardMessage = nullptr;
-    napi_create_int32(env, OHOS::Telephony::UNKNOWN, &shortMessageClassUnknown);
-    napi_create_int32(env, INSTANT_MESSAGE, &shortMessageClassInstantMessage);
-    napi_create_int32(env, OPTIONAL_MESSAGE, &shortMessageClassOptionalMessage);
-    napi_create_int32(env, SIM_MESSAGE, &shortMessageClassSimMessage);
-    napi_create_int32(env, FORWARD_MESSAGE, &shortMessageClassForwardMessage);
     napi_property_descriptor desc[] = {
         DECLARE_NAPI_FUNCTION("sendMessage", SendMessage),
         DECLARE_NAPI_FUNCTION("createMessage", CreateMessage),
@@ -1214,28 +1242,11 @@ napi_value InitNapiSmsRegistry(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("updateSimMessage", UpdateSimMessage),
         DECLARE_NAPI_FUNCTION("getAllSimMessages", GetAllSimMessages),
         DECLARE_NAPI_FUNCTION("setCBConfig", SetCBConfig),
-        DECLARE_NAPI_STATIC_PROPERTY("UNKNOWN", sendSmsSuccess),
-        DECLARE_NAPI_STATIC_PROPERTY("INSTANT_MESSAGE", sendSmsFailureUnknown),
-        DECLARE_NAPI_STATIC_PROPERTY("OPTIONAL_MESSAGE", sendSmsFailureRadioOff),
-        DECLARE_NAPI_STATIC_PROPERTY("SIM_MESSAGE", shortMessageClassSimMessage),
-        DECLARE_NAPI_STATIC_PROPERTY("FORWARD_MESSAGE", shortMessageClassForwardMessage),
-        DECLARE_NAPI_STATIC_PROPERTY("SEND_SMS_FAILURE_SERVICE_UNAVAILABLE", sendSmsFailureServiceUnavailable),
-        DECLARE_NAPI_STATIC_PROPERTY("SEND_SMS_SUCCESS", sendSmsSuccess),
-        DECLARE_NAPI_STATIC_PROPERTY("SEND_SMS_FAILURE_UNKNOWN", sendSmsFailureUnknown),
-        DECLARE_NAPI_STATIC_PROPERTY("SEND_SMS_FAILURE_RADIO_OFF", sendSmsFailureRadioOff),
-        DECLARE_NAPI_STATIC_PROPERTY("SEND_SMS_FAILURE_SERVICE_UNAVAILABLE", sendSmsFailureServiceUnavailable),
-        DECLARE_NAPI_STATIC_PROPERTY("MESSAGE_UNKNOWN_STATUS",
-            CreateStaticPropertyValue(env, static_cast<int32_t>(MESSAGE_UNKNOWN_STATUS))),
-        DECLARE_NAPI_STATIC_PROPERTY(
-            "MESSAGE_HAVE_READ", CreateStaticPropertyValue(env, static_cast<int32_t>(MESSAGE_HAVE_READ))),
-        DECLARE_NAPI_STATIC_PROPERTY(
-            "MESSAGE_UNREAD", CreateStaticPropertyValue(env, static_cast<int32_t>(MESSAGE_UNREAD))),
-        DECLARE_NAPI_STATIC_PROPERTY(
-            "MESSAGE_HAS_BEEN_SENT", CreateStaticPropertyValue(env, static_cast<int32_t>(MESSAGE_HAS_BEEN_SENT))),
-        DECLARE_NAPI_STATIC_PROPERTY(
-            "MESSAGE_NOT_SENT", CreateStaticPropertyValue(env, static_cast<int32_t>(MESSAGE_NOT_SENT))),
     };
     NAPI_CALL(env, napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc));
+    InitEnumSendSmsResult(env, exports);
+    InitEnumShortMessageClass(env, exports);
+    InitEnumMessageStatusClass(env, exports);
     return exports;
 }
 EXTERN_C_END

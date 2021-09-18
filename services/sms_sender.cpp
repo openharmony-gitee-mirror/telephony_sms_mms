@@ -160,7 +160,7 @@ NetDomainType SmsSender::GetNetDomainType() const
 }
 
 void SmsSender::SendResultCallBack(
-    const std::shared_ptr<SmsSendIndexer> &indexer, ISendShortMessageCallback::SmsSendResult result) const
+    const std::shared_ptr<SmsSendIndexer> &indexer, ISendShortMessageCallback::SmsSendResult result)
 {
     if (indexer != nullptr && indexer->GetSendCallback() != nullptr) {
         indexer->GetSendCallback()->OnSmsSendResult(result);
@@ -168,7 +168,7 @@ void SmsSender::SendResultCallBack(
 }
 
 void SmsSender::SendResultCallBack(
-    const sptr<ISendShortMessageCallback> &sendCallback, ISendShortMessageCallback::SmsSendResult result) const
+    const sptr<ISendShortMessageCallback> &sendCallback, ISendShortMessageCallback::SmsSendResult result)
 {
     if (sendCallback != nullptr) {
         sendCallback->OnSmsSendResult(result);

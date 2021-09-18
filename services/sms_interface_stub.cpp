@@ -85,6 +85,7 @@ void SmsInterfaceStub::SendMessage(int32_t slotId, const u16string desAddr, cons
 {
     std::shared_ptr<SmsInterfaceManager> interfaceManager = GetSmsInterfaceManager(slotId);
     if (interfaceManager == nullptr) {
+        SmsSender::SendResultCallBack(sendCallback, ISendShortMessageCallback::SEND_SMS_FAILURE_UNKNOWN);
         TELEPHONY_LOGE("SmsInterfaceStub::SendMessage interfaceManager== nullptr");
         return;
     }
@@ -98,6 +99,7 @@ void SmsInterfaceStub::SendMessage(int32_t slotId, const u16string desAddr, cons
 {
     std::shared_ptr<SmsInterfaceManager> interfaceManager = GetSmsInterfaceManager(slotId);
     if (interfaceManager == nullptr) {
+        SmsSender::SendResultCallBack(sendCallback, ISendShortMessageCallback::SEND_SMS_FAILURE_UNKNOWN);
         TELEPHONY_LOGE("SmsInterfaceStub::SendMessage interfaceManager== nullptr");
         return;
     }

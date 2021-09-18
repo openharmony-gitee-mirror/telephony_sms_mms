@@ -66,7 +66,7 @@ enum MessageStatus {
     MESSAGE_NOT_SENT = ISmsServiceInterface::SIM_MESSAGE_STATUS_UNSENT
 };
 
-enum ShortMessageClass {
+enum class ShortMessageClass {
     /** Indicates an unknown type. */
     UNKNOWN,
     /** Indicates an instant message, which is displayed immediately after being received. */
@@ -164,6 +164,11 @@ struct UpdateSimMessageContext : BaseContext {
     enum MessageStatus newStatus = MESSAGE_UNKNOWN_STATUS;
     std::string pdu = "";
     std::string smsc = "";
+};
+
+struct SimShortMessage {
+    ShortMessage message;
+    ShortMessage::SmsSimMessageStatus simMessageStatus;
 };
 
 struct GetAllSimMessagesContext : BaseContext {

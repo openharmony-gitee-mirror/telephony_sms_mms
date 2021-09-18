@@ -52,10 +52,10 @@ public:
     virtual void ProcessEvent(const AppExecFwk::InnerEvent::Pointer &event) override;
     virtual void Init() = 0;
 
-    void SendResultCallBack(
-        const std::shared_ptr<SmsSendIndexer> &indexer, ISendShortMessageCallback::SmsSendResult result) const;
-    void SendResultCallBack(const sptr<ISendShortMessageCallback> &sendCallback,
-        ISendShortMessageCallback::SmsSendResult result) const;
+    static void SendResultCallBack(
+        const std::shared_ptr<SmsSendIndexer> &indexer, ISendShortMessageCallback::SmsSendResult result);
+    static void SendResultCallBack(
+        const sptr<ISendShortMessageCallback> &sendCallback, ISendShortMessageCallback::SmsSendResult result);
 
 protected:
     int32_t slotId_ = -1;

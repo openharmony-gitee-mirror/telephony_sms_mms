@@ -19,9 +19,9 @@
 
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
-#include "system_ability_definition.h"
-
 #include "telephony_log_wrapper.h"
+#include "system_ability_definition.h"
+#include "telephony_napi_common_error.h"
 
 namespace OHOS {
 namespace Telephony {
@@ -54,7 +54,7 @@ int32_t ShortMessageManager::GetDefaultSmsSlotId()
     if (smsServiceInterface_ != nullptr) {
         return smsServiceInterface_->GetDefaultSmsSlotId();
     }
-    return ERROR_SERVICE_NOT_AVAILABLE;
+    return ERROR_SERVICE_UNAVAILABLE;
 }
 
 void ShortMessageManager::SendMessage(int32_t slotId, const std::u16string desAddr, const std::u16string scAddr,

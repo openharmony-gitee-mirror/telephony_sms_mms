@@ -54,7 +54,7 @@ int GetSegmentSize(
         maxSize = MAX_UCS2_DATA_LEN;
     }
 
-    if (bPortNum == true) {
+    if (bPortNum) {
         headerSize += port;
     }
 

@@ -99,8 +99,8 @@ declare namespace sms {
    * @permission ohos.permission.RECEIVE_SMS
    * @systemapi Hide this for inner system use.
    */
-  function getAllSimMessages(slotId: number, callback: AsyncCallback<Array<ShortMessage>>): void;
-  function getAllSimMessages(slotId: number): Promise<Array<ShortMessage>>;
+  function getAllSimMessages(slotId: number, callback: AsyncCallback<Array<SimShortMessage>>): void;
+  function getAllSimMessages(slotId: number): Promise<Array<SimShortMessage>>;
 
   /**
    * @permission ohos.permission.RECEIVE_SMS
@@ -134,10 +134,11 @@ declare namespace sms {
    * @systemapi Hide this for inner system use.
    */
   export enum MessageStatus {
-    MESSAGE_HAVE_READ = 0,
-    MESSAGE_UNREAD,
-    MESSAGE_HAS_BEEN_SENT,
-    MESSAGE_NOT_SENT
+    MESSAGE_UNREAD = 0,
+    MESSAGE_HAVE_READ,
+    MESSAGE_NOT_SENT,
+    MESSAGE_HAS_BEEN_SENT
+    
   }
 
   /**
@@ -185,8 +186,34 @@ declare namespace sms {
     userRawData: Array<number>;
     /** Indicates whether the received SMS is an email message. */
     isEmailMessage: boolean;
+  }
+
+  /**
+   * @systemapi Hide this for inner system use.
+   */
+  export interface SimShortMessage {
+    shortMessage: ShortMessage;
+
     /** Indicates the storage status of SMS messages in the SIM */
-    simMessageStatus:SmsSimMessageStatus;
+    simMessageStatus: SmsSimMessageStatus;
+  }
+
+  /**
+   * @systemapi Hide this for inner system use.
+   */
+  export enum SmsSimMessageStatus {
+    /** status free space ON SIM */
+    SMS_SIM_MESSAGE_STATUS_FREE = 0,
+    /** REC READ received read message */
+    SMS_SIM_MESSAGE_STATUS_READ = 1,
+    /** REC UNREAD received unread message */
+    SMS_SIM_MESSAGE_STATUS_UNREAD = 3,
+    /** STO SENT" stored sent message (only applicable to SMs) */
+    SMS_SIM_MESSAGE_STATUS_SENT = 5,
+    /** STO UNSENT" stored unsent message (only applicable to SMs) */
+    SMS_SIM_MESSAGE_STATUS_UNSENT = 7,
+    /** Indicates an unknown status. */
+    SMS_SIM_MESSAGE_STATUS_UNKNOWN,
   }
 
   export enum ShortMessageClass {
@@ -254,15 +281,6 @@ declare namespace sms {
      * or does not support sending or reception of SMS messages.
      */
     SEND_SMS_FAILURE_SERVICE_UNAVAILABLE = 3
-  }
-
-  export enum SmsSimMessageStatus {
-    SMS_SIM_MESSAGE_STATUS_FREE = 0, /** status free space ON SIM */
-    SMS_SIM_MESSAGE_STATUS_READ = 1, /** REC UNREAD received unread message */
-    SMS_SIM_MESSAGE_STATUS_UNREAD = 3, /** REC READ received read message */
-    SMS_SIM_MESSAGE_STATUS_SENT = 5, /** "STO UNSENT" stored unsent message (only applicable to SMs) */
-    SMS_SIM_MESSAGE_STATUS_UNSENT = 7, /** "STO SENT" stored sent message (only applicable to SMs) */
-    SMS_SIM_MESSAGE_STATUS_UNKNOWN, /** Indicates an unknown status. */
   }
 }
 

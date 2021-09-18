@@ -29,6 +29,7 @@ ohos_shared_library("tel_sms_mms_api") {
     "$SUBSYSTEM_DIR/sms_mms/services/include",
     "$SUBSYSTEM_DIR/sms_mms/services/include/cdma",
     "$SUBSYSTEM_DIR/sms_mms/services/include/gsm",
+    "$SUBSYSTEM_DIR/core_service/interfaces/innerkits/api",
     "$SUBSYSTEM_DIR/core_service/interfaces/innerkits/common",
     "$SUBSYSTEM_DIR/ril_adapter/interfaces/innerkits",
   ]

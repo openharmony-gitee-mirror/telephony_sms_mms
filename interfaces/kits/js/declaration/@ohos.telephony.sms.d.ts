@@ -67,7 +67,6 @@ declare namespace sms {
    */
   function setSmscAddr(slotId: number, smscAddr: string, callback: AsyncCallback<void>): void;
   function setSmscAddr(slotId: number, smscAddr: string): Promise<void>;
-
   /**
    * @permission ohos.permission.GET_TELEPHONY_STATE
    */
@@ -138,7 +137,6 @@ declare namespace sms {
     MESSAGE_HAVE_READ,
     MESSAGE_NOT_SENT,
     MESSAGE_HAS_BEEN_SENT
-    
   }
 
   /**
@@ -196,6 +194,8 @@ declare namespace sms {
 
     /** Indicates the storage status of SMS messages in the SIM */
     simMessageStatus: SmsSimMessageStatus;
+    /** Indicates the index of SMS messages in the SIM */
+    indexOnSim: number;
   }
 
   /**
@@ -208,12 +208,10 @@ declare namespace sms {
     SMS_SIM_MESSAGE_STATUS_READ = 1,
     /** REC UNREAD received unread message */
     SMS_SIM_MESSAGE_STATUS_UNREAD = 3,
-    /** STO SENT" stored sent message (only applicable to SMs) */
+    /** STO SENT stored sent message (only applicable to SMs) */
     SMS_SIM_MESSAGE_STATUS_SENT = 5,
-    /** STO UNSENT" stored unsent message (only applicable to SMs) */
+    /** STO UNSENT stored unsent message (only applicable to SMs) */
     SMS_SIM_MESSAGE_STATUS_UNSENT = 7,
-    /** Indicates an unknown status. */
-    SMS_SIM_MESSAGE_STATUS_UNKNOWN,
   }
 
   export enum ShortMessageClass {

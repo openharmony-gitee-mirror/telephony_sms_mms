@@ -55,7 +55,6 @@ public:
         SMS_SIM_MESSAGE_STATUS_UNREAD = 3, /** REC UNREAD received unread message */
         SMS_SIM_MESSAGE_STATUS_SENT = 5, /** "STO SENT" stored sent message (only applicable to SMs) */
         SMS_SIM_MESSAGE_STATUS_UNSENT = 7, /** "STO UNSENT" stored unsent message (only applicable to SMs) */
-        SMS_SIM_MESSAGE_STATUS_UNKNOWN, /** Indicates an unknown status. */
     };
 
     /**
@@ -132,6 +131,13 @@ public:
     SmsSimMessageStatus GetIccMessageStatus() const;
 
     /**
+     * @brief GetIndexOnSim
+     *
+     * @return int32_t
+     */
+    int32_t GetIndexOnSim() const;
+
+    /**
      * @brief GetProtocolId
      *
      * @return int32_t
@@ -163,7 +169,7 @@ public:
      * @param specification
      * @return ShortMessage
      */
-    static ShortMessage CreateIccMessage(std::vector<unsigned char> &pdu, std::string specification);
+    static ShortMessage CreateIccMessage(std::vector<unsigned char> &pdu, std::string specification, int32_t index);
     ~ShortMessage() = default;
     ShortMessage() = default;
     virtual bool Marshalling(Parcel &parcel) const override;
@@ -176,7 +182,7 @@ private:
     std::u16string visibleMessageBody_;
     std::u16string visibleRawAddress_;
     SmsMessageClass messageClass_ = SMS_CLASS_UNKNOWN;
-    SmsSimMessageStatus simMessageStatus_ = SMS_SIM_MESSAGE_STATUS_UNKNOWN;
+    SmsSimMessageStatus simMessageStatus_ = SMS_SIM_MESSAGE_STATUS_FREE;
     std::u16string scAddress_;
     int64_t scTimestamp_ = 0;
     bool isReplaceMessage_ = false;
@@ -184,6 +190,7 @@ private:
     bool isSmsStatusReportMessage_ = false;
     bool hasReplyPath_ = false;
     int32_t protocolId_ = -1;
+    int32_t indexOnSim_ = 0;
     std::vector<unsigned char> pdu_;
 };
 } // namespace Telephony

@@ -73,6 +73,8 @@ public:
     virtual bool IsWapPushMsg();
     virtual void ConvertMessageClass(enum SmsMessageClass msgClass);
     virtual int GetMsgRef();
+    virtual int GetIndexOnSim() const;
+    virtual void SetIndexOnSim(int index);
 
 protected:
     std::string scAddress_;
@@ -101,6 +103,7 @@ protected:
     bool bIndActive_;
     int codingScheme_;
     int codingGroup_;
+    int indexOnSim_ = -1;
     std::vector<uint8_t> rawPdu_;
     std::vector<uint8_t> rawUserData_;
     struct SmsUserData smsUserData_;

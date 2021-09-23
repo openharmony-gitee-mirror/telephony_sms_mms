@@ -201,7 +201,7 @@ int SmsCommonUtils::ConvertDigitToDTMF(const char *digit, int digitLen, int star
             }
         } else if (shift >= 0x01 && shift < smsMaxShift) {
             if (i % SmsCommonUtils::SMS_HEX_BYTE_STEP == 0x01) {
-                dtmf[offset] |= (temp >> shift);
+                dtmf[offset] |= static_cast<unsigned char>(static_cast<uint32_t>(temp) >> shift);
                 dtmf[offset + 0x01] = temp << (SmsCommonUtils::SMS_BYTE_BIT - shift);
                 offset++;
             } else {

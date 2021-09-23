@@ -350,9 +350,14 @@ std::vector<ShortMessage> SmsMiscManager::GetAllSimMessages()
         return ret;
     }
     std::vector<std::string> pdus = simSmsManager->ObtainAllSmsOfIcc();
+    int index = 0;
     for (auto &v : pdus) {
         std::vector<unsigned char> pdu = StringUtils::HexToByteVector(v);
-        ret.emplace_back(ShortMessage::CreateIccMessage(pdu, "3gpp"));
+        ShortMessage item = ShortMessage::CreateIccMessage(pdu, "3gpp", index);
+        if (item.GetIccMessageStatus() != ShortMessage::SMS_SIM_MESSAGE_STATUS_FREE) {
+            ret.emplace_back(item);
+        }
+        index++;
     }
     return ret;
 }

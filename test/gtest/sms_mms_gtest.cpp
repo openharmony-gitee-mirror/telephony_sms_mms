@@ -16,14 +16,14 @@
 #define SMS_MMS_GTEST_H
 
 #include "gtest/gtest.h"
-
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "i_sms_service_interface.h"
 #include "sms_service_proxy.h"
 #include "system_ability_definition.h"
 
-#include "i_sms_service_interface.h"
+#include "string_utils.h"
 
 namespace OHOS {
 namespace Telephony {
@@ -38,9 +38,6 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
-
-    static bool CloseCellBroadcast();
-    static bool OpenCellBroadcast();
     static sptr<ISmsServiceInterface> GetProxy();
 };
 
@@ -72,50 +69,249 @@ sptr<ISmsServiceInterface> SmsMmsGtest::GetProxy()
     return nullptr;
 }
 
-bool SmsMmsGtest::CloseCellBroadcast()
-{
-    bool result = false;
-    if (g_telephonyService == nullptr) {
-        return result;
-    }
-    int32_t slotId = 1;
-    bool enable = false;
-    uint32_t fromMsgId = 10;
-    uint32_t toMsgId = 0;
-    uint8_t netType = 1;
-    return g_telephonyService->SetCBConfig(slotId, enable, fromMsgId, toMsgId, netType);
-}
-
-bool SmsMmsGtest::OpenCellBroadcast()
-{
-    bool result = false;
-    if (g_telephonyService == nullptr) {
-        return result;
-    }
-    int32_t slotId = -1;
-    bool enable = true;
-    uint32_t fromMsgId = 0;
-    uint32_t toMsgId = 10;
-    uint8_t netType = 1;
-    return g_telephonyService->SetCBConfig(slotId, enable, fromMsgId, toMsgId, netType);
-}
-
-HWTEST_F(SmsMmsGtest, GetProxy, TestSize.Level1)
+HWTEST_F(SmsMmsGtest, GetProxy_0001, TestSize.Level1)
 {
     g_telephonyService = SmsMmsGtest::GetProxy();
-    ASSERT_FALSE(g_telephonyService == nullptr);
+    EXPECT_FALSE(g_telephonyService == nullptr);
 }
 
-HWTEST_F(SmsMmsGtest, CloseCellBroadcast, TestSize.Level1)
+HWTEST_F(SmsMmsGtest, OpenCellBroadcast_0001, TestSize.Level1)
 {
-    auto result = SmsMmsGtest::CloseCellBroadcast();
-    ASSERT_FALSE(result);
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = -1;
+        bool enable = true;
+        uint32_t fromMsgId = 0;
+        uint32_t toMsgId = 10;
+        uint8_t netType = 1;
+        result = g_telephonyService->SetCBConfig(slotId, enable, fromMsgId, toMsgId, netType);
+        EXPECT_FALSE(result);
+    }
 }
 
-HWTEST_F(SmsMmsGtest, OpenCellBroadcast, TestSize.Level1)
+HWTEST_F(SmsMmsGtest, OpenCellBroadcast_0002, TestSize.Level1)
 {
-    auto result = SmsMmsGtest::OpenCellBroadcast();
-    ASSERT_FALSE(result);
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = 0;
+        bool enable = true;
+        uint32_t fromMsgId = 20;
+        uint32_t toMsgId = 10;
+        uint8_t netType = 1;
+        result = g_telephonyService->SetCBConfig(slotId, enable, fromMsgId, toMsgId, netType);
+        EXPECT_FALSE(result);
+    }
+}
+
+HWTEST_F(SmsMmsGtest, OpenCellBroadcast_0003, TestSize.Level1)
+{
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = 0;
+        bool enable = true;
+        uint32_t fromMsgId = 0;
+        uint32_t toMsgId = 10;
+        uint8_t netType = 3;
+        result = g_telephonyService->SetCBConfig(slotId, enable, fromMsgId, toMsgId, netType);
+        EXPECT_FALSE(result);
+    }
+}
+
+HWTEST_F(SmsMmsGtest, OpenCellBroadcast_0004, TestSize.Level1)
+{
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = 0;
+        bool enable = true;
+        uint32_t fromMsgId = 0;
+        uint32_t toMsgId = 10;
+        uint8_t netType = 1;
+        result = g_telephonyService->SetCBConfig(slotId, enable, fromMsgId, toMsgId, netType);
+        EXPECT_TRUE(result);
+    }
+}
+
+HWTEST_F(SmsMmsGtest, OpenCellBroadcast_0005, TestSize.Level1)
+{
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = 0;
+        bool enable = true;
+        uint32_t fromMsgId = 0;
+        uint32_t toMsgId = 1000;
+        uint8_t netType = 1;
+        result = g_telephonyService->SetCBConfig(slotId, enable, fromMsgId, toMsgId, netType);
+        EXPECT_TRUE(result);
+    }
+}
+
+HWTEST_F(SmsMmsGtest, OpenCellBroadcast_0006, TestSize.Level1)
+{
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = 0;
+        bool enable = true;
+        uint32_t fromMsgId = 0;
+        uint32_t toMsgId = 0;
+        uint8_t netType = 1;
+        result = g_telephonyService->SetCBConfig(slotId, enable, fromMsgId, toMsgId, netType);
+        EXPECT_TRUE(result);
+    }
+}
+
+HWTEST_F(SmsMmsGtest, CloseCellBroadcast_0001, TestSize.Level1)
+{
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = -1;
+        bool enable = false;
+        uint32_t fromMsgId = 0;
+        uint32_t toMsgId = 10;
+        uint8_t netType = 1;
+        result = g_telephonyService->SetCBConfig(slotId, enable, fromMsgId, toMsgId, netType);
+        EXPECT_FALSE(result);
+    }
+}
+
+HWTEST_F(SmsMmsGtest, CloseCellBroadcast_0002, TestSize.Level1)
+{
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = 0;
+        bool enable = false;
+        uint32_t fromMsgId = 20;
+        uint32_t toMsgId = 10;
+        uint8_t netType = 1;
+        result = g_telephonyService->SetCBConfig(slotId, enable, fromMsgId, toMsgId, netType);
+        EXPECT_FALSE(result);
+    }
+}
+
+HWTEST_F(SmsMmsGtest, CloseCellBroadcast_0003, TestSize.Level1)
+{
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = 0;
+        bool enable = false;
+        uint32_t fromMsgId = 0;
+        uint32_t toMsgId = 10;
+        uint8_t netType = 3;
+        result = g_telephonyService->SetCBConfig(slotId, enable, fromMsgId, toMsgId, netType);
+        EXPECT_FALSE(result);
+    }
+}
+
+HWTEST_F(SmsMmsGtest, CloseCellBroadcast_0004, TestSize.Level1)
+{
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = 0;
+        bool enable = false;
+        uint32_t fromMsgId = 0;
+        uint32_t toMsgId = 10;
+        uint8_t netType = 1;
+        result = g_telephonyService->SetCBConfig(slotId, enable, fromMsgId, toMsgId, netType);
+        EXPECT_TRUE(result);
+    }
+}
+
+HWTEST_F(SmsMmsGtest, CloseCellBroadcast_0005, TestSize.Level1)
+{
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = 0;
+        bool enable = false;
+        uint32_t fromMsgId = 0;
+        uint32_t toMsgId = 1000;
+        uint8_t netType = 1;
+        result = g_telephonyService->SetCBConfig(slotId, enable, fromMsgId, toMsgId, netType);
+        EXPECT_TRUE(result);
+    }
+}
+
+HWTEST_F(SmsMmsGtest, CloseCellBroadcast_0006, TestSize.Level1)
+{
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = 0;
+        bool enable = false;
+        uint32_t fromMsgId = 0;
+        uint32_t toMsgId = 0;
+        uint8_t netType = 1;
+        result = g_telephonyService->SetCBConfig(slotId, enable, fromMsgId, toMsgId, netType);
+        EXPECT_TRUE(result);
+    }
+}
+
+HWTEST_F(SmsMmsGtest, SetDefaultSmsSlotId_0001, TestSize.Level1)
+{
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = 0;
+        result = g_telephonyService->SetDefaultSmsSlotId(slotId);
+        EXPECT_TRUE(result);
+    }
+}
+
+HWTEST_F(SmsMmsGtest, SetDefaultSmsSlotId_0002, TestSize.Level1)
+{
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = 1;
+        result = g_telephonyService->SetDefaultSmsSlotId(slotId);
+        EXPECT_TRUE(result);
+    }
+}
+
+HWTEST_F(SmsMmsGtest, SetDefaultSmsSlotId_0003, TestSize.Level1)
+{
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = 2;
+        result = g_telephonyService->SetDefaultSmsSlotId(slotId);
+        EXPECT_TRUE(result);
+    }
+}
+
+HWTEST_F(SmsMmsGtest, SetDefaultSmsSlotId_0004, TestSize.Level1)
+{
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = 3;
+        result = g_telephonyService->SetDefaultSmsSlotId(slotId);
+        EXPECT_FALSE(result);
+    }
+}
+
+HWTEST_F(SmsMmsGtest, SetDefaultSmsSlotId_0005, TestSize.Level1)
+{
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = 4;
+        result = g_telephonyService->SetDefaultSmsSlotId(slotId);
+        EXPECT_FALSE(result);
+    }
+}
+
+HWTEST_F(SmsMmsGtest, GetDefaultSmsSlotId_0001, TestSize.Level1)
+{
+    const int32_t error = -1;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = 0;
+        slotId = g_telephonyService->GetDefaultSmsSlotId();
+        EXPECT_TRUE(slotId != error);
+    }
+}
+
+HWTEST_F(SmsMmsGtest, SetSmscAddr_0001, TestSize.Level1)
+{
+    bool result = false;
+    if (g_telephonyService != nullptr) {
+        int32_t slotId = -1;
+        std::string scAddr("13333333333");
+        result = g_telephonyService->SetSmscAddr(slotId, StringUtils::ToUtf16(scAddr));
+        EXPECT_FALSE(result);
+    }
 }
 } // namespace Telephony
 } // namespace OHOS

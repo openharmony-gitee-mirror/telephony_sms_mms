@@ -44,6 +44,9 @@ bool ShortMessage::ReadFromParcel(Parcel &parcel)
     }
     simMessageStatus_ = static_cast<ShortMessage::SmsSimMessageStatus>(simMsgStatus);
 
+    if (!parcel.ReadInt32(indexOnSim_)) {
+        return false;
+    }
     if (!parcel.ReadString16(scAddress_)) {
         return false;
     }
@@ -83,6 +86,9 @@ bool ShortMessage::Marshalling(Parcel &parcel) const
         return false;
     }
     if (!parcel.WriteInt8(static_cast<int8_t>(simMessageStatus_))) {
+        return false;
+    }
+    if (!parcel.WriteInt32(indexOnSim_)) {
         return false;
     }
     if (!parcel.WriteString16(scAddress_)) {
@@ -169,6 +175,11 @@ ShortMessage::SmsSimMessageStatus ShortMessage::GetIccMessageStatus() const
     return simMessageStatus_;
 }
 
+int32_t ShortMessage::GetIndexOnSim() const
+{
+    return indexOnSim_;
+}
+
 int32_t ShortMessage::GetProtocolId() const
 {
     return protocolId_;
@@ -214,10 +225,10 @@ ShortMessage *ShortMessage::CreateMessage(std::vector<unsigned char> &pdu, std::
     return message;
 }
 
-ShortMessage ShortMessage::CreateIccMessage(std::vector<unsigned char> &pdu, std::string specification)
+ShortMessage ShortMessage::CreateIccMessage(std::vector<unsigned char> &pdu, std::string specification, int32_t index)
 {
     ShortMessage message;
-    message.simMessageStatus_ = SMS_SIM_MESSAGE_STATUS_UNKNOWN;
+    message.simMessageStatus_ = SMS_SIM_MESSAGE_STATUS_FREE;
     if (pdu.size() <= MIN_ICC_PDU_LEN) {
         return message;
     }
@@ -240,6 +251,7 @@ ShortMessage ShortMessage::CreateIccMessage(std::vector<unsigned char> &pdu, std
         return message;
     }
 
+    baseMessage->SetIndexOnSim(index);
     if (simStatus == SMS_SIM_MESSAGE_STATUS_READ || simStatus == SMS_SIM_MESSAGE_STATUS_UNREAD ||
         simStatus == SMS_SIM_MESSAGE_STATUS_SENT || simStatus == SMS_SIM_MESSAGE_STATUS_UNSENT) {
         message.simMessageStatus_ = static_cast<SmsSimMessageStatus>(simStatus);
@@ -256,6 +268,7 @@ ShortMessage ShortMessage::CreateIccMessage(std::vector<unsigned char> &pdu, std
     message.hasReplyPath_ = baseMessage->HasReplyPath();
     message.protocolId_ = baseMessage->GetProtocolId();
     message.pdu_ = baseMessage->GetRawPdu();
+    message.indexOnSim_ = baseMessage->GetIndexOnSim();
     return message;
 }
 } // namespace Telephony

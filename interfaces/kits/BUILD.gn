@@ -1,0 +1,59 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+import("//build/ohos.gni")
+SUBSYSTEM_DIR = "//base/telephony"
+SMS_MMS_API_DIR = "$SUBSYSTEM_DIR/sms_mms/interfaces/kits"
+ohos_shared_library("tel_sms_mms_api") {
+  sources = [
+    "$SMS_MMS_API_DIR/src/delivery_short_message_callback_stub.cpp",
+    "$SMS_MMS_API_DIR/src/send_short_message_callback_stub.cpp",
+    "$SMS_MMS_API_DIR/src/short_message.cpp",
+    "$SMS_MMS_API_DIR/src/short_message_manager.cpp",
+    "//base/telephony/core_service/interfaces/innerkits/sms_mms/proxy/sms_service_proxy.cpp",
+  ]
+
+  include_dirs = [
+    "//base/telephony/core_service/interfaces/innerkits/sms_mms/proxy",
+    "$SMS_MMS_API_DIR/include",
+    "$SUBSYSTEM_DIR/sms_mms/utils",
+    "$SUBSYSTEM_DIR/sms_mms/services/include",
+    "$SUBSYSTEM_DIR/sms_mms/services/include/cdma",
+    "$SUBSYSTEM_DIR/sms_mms/services/include/gsm",
+    "$SUBSYSTEM_DIR/core_service/interfaces/innerkits/api",
+    "$SUBSYSTEM_DIR/core_service/interfaces/innerkits/common",
+    "$SUBSYSTEM_DIR/ril_adapter/interfaces/innerkits",
+  ]
+  deps = [
+    "$SUBSYSTEM_DIR/sms_mms:tel_sms_mms",
+    "//base/telephony/core_service/common:libtelephony_common",
+    "//utils/native/base:utils",
+  ]
+  external_deps = [
+    "ipc:ipc_core",
+    "safwk:system_ability_fwk",
+    "samgr_L2:samgr_proxy",
+  ]
+
+  defines = [
+    "TELEPHONY_LOG_TAG = \"SMS_MMS_API\"",
+    "LOG_DOMAIN = 0xD002B01",
+  ]
+
+  if (is_standard_system) {
+    external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
+  } else {
+    external_deps += [ "hilog:libhilog" ]
+  }
+  part_name = "sms_mms"
+  subsystem_name = "telephony"
+}

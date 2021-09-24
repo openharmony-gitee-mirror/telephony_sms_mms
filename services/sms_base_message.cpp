@@ -214,5 +214,15 @@ int SmsBaseMessage::GetMsgRef()
 {
     return msgRef_;
 }
+
+int SmsBaseMessage::GetIndexOnSim() const
+{
+    return indexOnSim_;
+}
+
+void SmsBaseMessage::SetIndexOnSim(int index)
+{
+    indexOnSim_ = index;
+}
 } // namespace Telephony
 } // namespace OHOS

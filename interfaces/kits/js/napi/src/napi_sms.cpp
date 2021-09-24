@@ -1036,6 +1036,7 @@ static napi_value CreateSimShortMessageValue(napi_env env, const ShortMessage *s
     std::string shortMessageKey("shortMessage");
     napi_set_named_property(env, simObject, shortMessageKey.c_str(), object);
     NapiUtil::SetPropertyInt32(env, simObject, "SmsSimMessageStatus", shortMessage->GetIccMessageStatus());
+    NapiUtil::SetPropertyInt32(env, simObject, "indexOnSim", shortMessage->GetIndexOnSim());
     return simObject;
 }
 
@@ -1256,7 +1257,7 @@ static napi_module g_smsModule = {
     .nm_flags = 0,
     .nm_filename = nullptr,
     .nm_register_func = InitNapiSmsRegistry,
-    .nm_modname = "libtelephony_sms.z.so",
+    .nm_modname = "telephony.sms",
     .nm_priv = ((void *)0),
     .reserved = {(void *)0},
 };

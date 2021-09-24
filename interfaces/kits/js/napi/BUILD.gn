@@ -12,7 +12,7 @@
 # limitations under the License.
 import("//build/ohos.gni")
 SUBSYSTEM_DIR = "//base/telephony"
-ohos_shared_library("telephony_sms") {
+ohos_shared_library("sms") {
   include_dirs = [
     "//third_party/node/src",
     "$SUBSYSTEM_DIR/sms_mms/interfaces/kits/js/napi/include",
@@ -60,7 +60,7 @@ ohos_shared_library("telephony_sms") {
   } else {
     external_deps += [ "hilog:libhilog" ]
   }
-  relative_install_dir = "module"
+  relative_install_dir = "module/telephony"
   part_name = "sms_mms"
   subsystem_name = "telephony"
 }

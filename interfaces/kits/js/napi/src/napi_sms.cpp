@@ -1036,6 +1036,7 @@ static napi_value CreateSimShortMessageValue(napi_env env, const ShortMessage *s
     std::string shortMessageKey("shortMessage");
     napi_set_named_property(env, simObject, shortMessageKey.c_str(), object);
     NapiUtil::SetPropertyInt32(env, simObject, "SmsSimMessageStatus", shortMessage->GetIccMessageStatus());
+    NapiUtil::SetPropertyInt32(env, simObject, "indexOnSim", shortMessage->GetIndexOnSim());
     return simObject;
 }
 

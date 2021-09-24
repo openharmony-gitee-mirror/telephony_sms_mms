@@ -223,19 +223,14 @@ void GsmSmsSenderTest::TestGetAllSimMessages(const sptr<ISmsServiceInterface> &s
         return;
     }
     int32_t slotId = CoreManager::DEFAULT_SLOT_ID;
-    int32_t index = 0;
     result = smsService->GetAllSimMessages(slotId);
-    std::cout << "TestUpdateSimMessage Begin:" << std::endl;
+    std::cout << "TestUpdateSimMessage001 Begin:" << std::endl;
     for (auto &item : result) {
-        if (item.GetIccMessageStatus() != ShortMessage::SMS_SIM_MESSAGE_STATUS_FREE &&
-            item.GetIccMessageStatus() != ShortMessage::SMS_SIM_MESSAGE_STATUS_UNKNOWN) {
-            std::cout << "[" << index << "] " << StringUtils::StringToHex(item.GetPdu()) << std::endl;
-            std::cout << "status:" << item.GetIccMessageStatus()
-                      << " message:" << StringUtils::ToUtf8(item.GetVisibleMessageBody()) << std::endl;
-        }
-        index++;
+        std::cout << "[" << item.GetIndexOnSim() << "] " << StringUtils::StringToHex(item.GetPdu()) << std::endl;
+        std::cout << "status:" << item.GetIccMessageStatus()
+                  << " message:" << StringUtils::ToUtf8(item.GetVisibleMessageBody()) << std::endl;
     }
-    std::cout << "TestUpdateSimMessage End!" << std::endl;
+    std::cout << "TestUpdateSimMessage001 End!" << std::endl;
 }
 
 void GsmSmsSenderTest::TestEnableCBRangeConfig(const sptr<ISmsServiceInterface> &smsService) const

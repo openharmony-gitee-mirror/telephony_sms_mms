@@ -48,7 +48,9 @@ void SmsSender::ProcessEvent(const AppExecFwk::InnerEvent::Pointer &event)
         }
         case MSG_SMS_RETRY_DELIVERY: {
             smsIndexer = event->GetSharedObject<SmsSendIndexer>();
-            sendRetryFun_(smsIndexer);
+            if (sendRetryFun_ != nullptr) {
+                sendRetryFun_(smsIndexer);
+            }
             break;
         }
         case ObserverHandler::RADIO_SMS_STATUS: {

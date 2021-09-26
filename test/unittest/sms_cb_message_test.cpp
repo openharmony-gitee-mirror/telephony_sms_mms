@@ -21,35 +21,6 @@
 
 namespace OHOS {
 namespace Telephony {
-static const char HEX_ETWS_NORMAL[] =
-    "000011001101"
-    "0D0A5BAE57CE770C531790E85C716CBF3044573065B930675730"
-    "9707767A751F30025F37304463FA308C306B5099304830664E0B30553044FF086C178C615E81FF09"
-    "0000000000000000000000000000";
-
-static const char HEX_ETWS_CANCEL[] =
-    "000011001101"
-    "0D0A5148307B3069002800310030003A0035"
-    "00320029306E7DCA602557309707901F5831309253D66D883057307E3059FF086C178C615E81FF09"
-    "00000000000000000000000000000000000000000000";
-
-static const char HEX_ETWS_TEST[] =
-    "000011031101"
-    "0D0A5BAE57CE770C531790E85C716CBF3044"
-    "573065B9306757309707300263FA308C306B5099304830664E0B30553044FF086C178C615E81FF09"
-    "00000000000000000000000000000000000000000000";
-
-static const char HEX_UMTS_TEST[] =
-    "01a41f51101102ea3030a830ea30a230e130fc30eb914d4fe130c630b930c8000d000a305330"
-    "8c306f8a669a137528306e30e130c330bb30"
-    "fc30b8306730593002000d000aff08003200"
-    "3000310033002f00310031002f003252ea30"
-    "0037002000310035003a00340034ff09000d"
-    "000aff0830a830ea30a25e02ff0900000000"
-    "000000000000000000000000000000000000"
-    "000000000000000000000000000000000000"
-    "000000000000000022";
-
 void SmsCbMessageTest::ProcessInput(bool &loopFlag) const
 {
     int inputCMD = 0;
@@ -101,7 +72,16 @@ void SmsCbMessageTest::ProcessTest() const
 
 void SmsCbMessageTest::TestUMTSMessage() const
 {
-    std::string data(HEX_UMTS_TEST);
+    const std::string data(
+        "01a41f51101102ea3030a830ea30a230e130fc30eb914d4fe130c630b930c8000d000a305330"
+        "8c306f8a669a137528306e30e130c330bb30"
+        "fc30b8306730593002000d000aff08003200"
+        "3000310033002f00310031002f003252ea30"
+        "0037002000310035003a00340034ff09000d"
+        "000aff0830a830ea30a25e02ff0900000000"
+        "000000000000000000000000000000000000"
+        "000000000000000000000000000000000000"
+        "000000000000000022");
     std::shared_ptr<SmsCbMessage> msg = SmsCbMessage::CreateCbMessage(data);
     if (msg == nullptr) {
         std::cout << "CreateCbMessage fail." << std::endl;
@@ -111,7 +91,11 @@ void SmsCbMessageTest::TestUMTSMessage() const
 
 void SmsCbMessageTest::TestEtwsNormal() const
 {
-    std::string data(HEX_ETWS_NORMAL);
+    const std::string data(
+        "000011001101"
+        "0D0A5BAE57CE770C531790E85C716CBF3044573065B930675730"
+        "9707767A751F30025F37304463FA308C306B5099304830664E0B30553044FF086C178C615E81FF09"
+        "0000000000000000000000000000");
     std::shared_ptr<SmsCbMessage> msg = SmsCbMessage::CreateCbMessage(data);
     if (msg == nullptr) {
         std::cout << "CreateCbMessage fail." << std::endl;
@@ -121,7 +105,11 @@ void SmsCbMessageTest::TestEtwsNormal() const
 
 void SmsCbMessageTest::TestEtwsCancel() const
 {
-    std::string data(HEX_ETWS_CANCEL);
+    const std::string data(
+        "000011001101"
+        "0D0A5148307B3069002800310030003A0035"
+        "00320029306E7DCA602557309707901F5831309253D66D883057307E3059FF086C178C615E81FF09"
+        "00000000000000000000000000000000000000000000");
     std::shared_ptr<SmsCbMessage> msg = SmsCbMessage::CreateCbMessage(data);
     if (msg == nullptr) {
         std::cout << "CreateCbMessage fail." << std::endl;
@@ -131,7 +119,11 @@ void SmsCbMessageTest::TestEtwsCancel() const
 
 void SmsCbMessageTest::TestEtwsTest() const
 {
-    std::string data(HEX_ETWS_TEST);
+    const std::string data(
+        "000011031101"
+        "0D0A5BAE57CE770C531790E85C716CBF3044"
+        "573065B9306757309707300263FA308C306B5099304830664E0B30553044FF086C178C615E81FF09"
+        "00000000000000000000000000000000000000000000");
     std::shared_ptr<SmsCbMessage> msg = SmsCbMessage::CreateCbMessage(data);
     if (msg == nullptr) {
         std::cout << "CreateCbMessage fail." << std::endl;

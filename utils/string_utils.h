@@ -41,6 +41,7 @@ private:
 
     static constexpr uint8_t HEX_OFFSET = 4;
     static constexpr uint8_t STEP_2BIT = 2;
+    static constexpr char HEX_TABLE[] = "0123456789ABCDEF";
 };
 } // namespace Telephony
 } // namespace OHOS

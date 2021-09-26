@@ -597,7 +597,7 @@ void GsmSmsTpduCodec::DebugTpdu(const unsigned char *pTpdu, int TpduLen, const e
     for (int i = 0; i < TpduLen; i++) {
         uint8_t step = HEX_BYTE_STEP;
         const int len = sizeof(tpduTmp) - (i * step);
-        if (snprintf_s(tpduTmp + (i * step), len - 1, len - 1, "%02X", pTpdu[i]) < 0) {
+        if (snprintf_s(tpduTmp + (i * step), len - 1, len - 1, "%02X", static_cast<uint32_t>(pTpdu[i])) < 0) {
             TELEPHONY_LOGE("DebugTpdu snprintf_s error");
             return;
         }

@@ -1257,7 +1257,7 @@ static napi_module g_smsModule = {
     .nm_flags = 0,
     .nm_filename = nullptr,
     .nm_register_func = InitNapiSmsRegistry,
-    .nm_modname = "libtelephony_sms.z.so",
+    .nm_modname = "telephony.sms",
     .nm_priv = ((void *)0),
     .reserved = {(void *)0},
 };

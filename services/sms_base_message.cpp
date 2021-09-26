@@ -192,16 +192,16 @@ bool SmsBaseMessage::IsWapPushMsg()
 void SmsBaseMessage::ConvertMessageClass(enum SmsMessageClass msgClass)
 {
     switch (msgClass) {
-        case SMS_SIM_MESSAGE:
+        case SmsMessageClass::SMS_SIM_MESSAGE:
             msgClass_ = SmsMessageClass::SMS_SIM_MESSAGE;
             break;
-        case SMS_INSTANT_MESSAGE:
+        case SmsMessageClass::SMS_INSTANT_MESSAGE:
             msgClass_ = SmsMessageClass::SMS_INSTANT_MESSAGE;
             break;
-        case SMS_OPTIONAL_MESSAGE:
+        case SmsMessageClass::SMS_OPTIONAL_MESSAGE:
             msgClass_ = SmsMessageClass::SMS_OPTIONAL_MESSAGE;
             break;
-        case SMS_FORWARD_MESSAGE:
+        case SmsMessageClass::SMS_FORWARD_MESSAGE:
             msgClass_ = SmsMessageClass::SMS_FORWARD_MESSAGE;
             break;
         default:

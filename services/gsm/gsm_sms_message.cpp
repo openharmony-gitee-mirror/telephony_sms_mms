@@ -384,7 +384,9 @@ std::shared_ptr<struct SmsTpdu> GsmSmsMessage::CreateDataSubmitSmsTpdu(const std
     }
     MSG_LANGUAGE_ID_T langId = MSG_ID_RESERVED_LANG;
     SmsCodingScheme pCodingType = SMS_CODING_8BIT;
-    smsTpdu_->data.submit.userData.data[dataLen] = 0;
+    if (dataLen < sizeof(smsTpdu_->data.submit.userData.data)) {
+        smsTpdu_->data.submit.userData.data[dataLen] = 0;
+    }
     smsTpdu_->data.submit.msgRef = msgRef8bit;
     /* Set User Data Header Port Information */
     smsTpdu_->data.submit.userData.header[headerCnt].udhType = SMS_UDH_APP_PORT_16BIT;
@@ -721,7 +723,7 @@ bool GsmSmsMessage::GetIsTypeZeroInd() const
 bool GsmSmsMessage::GetIsSIMDataTypeDownload() const
 {
     int protocolId = GetProtocolId();
-    return GetMessageClass() == SMS_SIM_MESSAGE && (protocolId == 0x7f || protocolId == 0x7c);
+    return (GetMessageClass() == SmsMessageClass::SMS_SIM_MESSAGE) && (protocolId == 0x7f || protocolId == 0x7c);
 }
 
 void GsmSmsMessage::ConvertMsgTimeStamp(const struct SmsTimeStamp &times)

@@ -4,14 +4,12 @@
         "sms_mms": {
             "module_list": [
                 "//base/telephony/sms_mms:tel_sms_mms",
-                "//base/telephony/sms_mms/test/unittest:tel_sms_mms_test",
                 "//base/telephony/sms_mms/interfaces/kits:tel_sms_mms_api",
                 "//base/telephony/sms_mms/interfaces/kits/js/napi:sms",
-                "//base/telephony/sms_mms/interfaces/kits/test:tel_sms_mms_api_test",
                 "//base/telephony/sms_mms/sa_profile:sms_mms_sa_profile"
             ],
             "test_list": [
-                "//base/telephony/sms_mms/test/gtest:unittest"
+                "//base/telephony/sms_mms/test/sms_mms_gtest:unittest"
             ]
         }
     }

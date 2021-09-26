@@ -30,6 +30,7 @@
 namespace OHOS {
 namespace Telephony {
 const int32_t DEFAULT_ERROR = -1;
+const int32_t MESSAGE_UNKNOWN_STATUS = -1;
 const int32_t MESSAGE_PARAMETER_NOT_MATCH = 0;
 const int32_t TEXT_MESSAGE_PARAMETER_MATCH = 1;
 const int32_t RAW_DATA_MESSAGE_PARAMETER_MATCH = 2;
@@ -38,33 +39,6 @@ constexpr int32_t DEFAULT_PORT = 8888;
 constexpr size_t BUFF_LENGTH = 31;
 constexpr int32_t PROPERTY_NAME_SIZE = 32;
 constexpr int32_t NORMAL_STRING_SIZE = 64;
-
-enum MessageStatus {
-    /**
-     * 未知状态
-     */
-    MESSAGE_UNKNOWN_STATUS = -1,
-
-    /**
-     * 已读
-     */
-    MESSAGE_HAVE_READ = ISmsServiceInterface::SIM_MESSAGE_STATUS_READ,
-
-    /**
-     * 未读
-     */
-    MESSAGE_UNREAD = ISmsServiceInterface::SIM_MESSAGE_STATUS_UNREAD,
-
-    /**
-     * 已发送
-     */
-    MESSAGE_HAS_BEEN_SENT = ISmsServiceInterface::SIM_MESSAGE_STATUS_SENT,
-
-    /**
-     * 未发送
-     */
-    MESSAGE_NOT_SENT = ISmsServiceInterface::SIM_MESSAGE_STATUS_UNSENT
-};
 
 enum class ShortMessageClass {
     /** Indicates an unknown type. */
@@ -147,7 +121,7 @@ struct AddSimMessageContext : BaseContext {
     int32_t slotId = CoreManager::DEFAULT_SLOT_ID;
     std::string smsc = "";
     std::string pdu = "";
-    enum MessageStatus status = MESSAGE_UNKNOWN_STATUS;
+    int32_t status = MESSAGE_UNKNOWN_STATUS;
     bool addResult = false;
 };
 
@@ -161,7 +135,7 @@ struct UpdateSimMessageContext : BaseContext {
     int32_t slotId = CoreManager::DEFAULT_SLOT_ID;
     int32_t msgIndex = DEFAULT_ERROR;
     bool updateResult = false;
-    enum MessageStatus newStatus = MESSAGE_UNKNOWN_STATUS;
+    int32_t newStatus = MESSAGE_UNKNOWN_STATUS;
     std::string pdu = "";
     std::string smsc = "";
 };

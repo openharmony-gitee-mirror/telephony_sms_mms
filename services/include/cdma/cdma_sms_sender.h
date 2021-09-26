@@ -37,6 +37,8 @@ public:
     void SendSmsToRil(const std::shared_ptr<SmsSendIndexer> &smsIndexer) override;
     void Init() override;
     void ReceiveStatusReport(const std::shared_ptr<SmsReceiveIndexer> &smsIndexer);
+    void ResendTextDelivery(const std::shared_ptr<SmsSendIndexer> &smsIndexer) override;
+    void ResendDataDelivery(const std::shared_ptr<SmsSendIndexer> &smsIndexer) override;
 
 protected:
     void StatusReportAnalysis(const AppExecFwk::InnerEvent::Pointer &event) override;

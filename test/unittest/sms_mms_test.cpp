@@ -143,8 +143,7 @@ int main()
         hint += "[" + std::to_string(index) + "]:" + (*testFunArray)[index].funName + "\n";
     }
     while (smsService != nullptr) {
-        std::cout << hint;
-        std::cout << "Please input test case number!" << std::endl;
+        std::cout << hint << "Please input test case number!" << std::endl;
         std::string input;
         int caseNumber = 0;
         std::cin >> input;
@@ -153,16 +152,15 @@ int main()
         std::cin.ignore();
         std::cin.sync();
         if (caseNumber < -1 || caseNumber >= caseCount) {
-            std::cout << "test case is not exist!" << std::endl;
             continue;
         }
         if (caseNumber == -1) {
             break;
         }
-        std::cout << "Enter the " << (*testFunArray)[caseNumber].funName << " case!" << std::endl;
-        (*testFunArray)[caseNumber].fun();
+        if ((*testFunArray)[caseNumber].fun != nullptr) {
+            (*testFunArray)[caseNumber].fun();
+        }
     }
-
     if (::g_shortMessage != nullptr) {
         delete ::g_shortMessage;
         ::g_shortMessage = nullptr;

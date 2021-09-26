@@ -20,7 +20,6 @@
 
 namespace OHOS {
 namespace Telephony {
-static constexpr char HEX_TABLE[] = "0123456789ABCDEF";
 StringUtils::StringUtils() {}
 
 StringUtils::~StringUtils() {}

@@ -200,15 +200,15 @@ int GsmSmsParamCodec::EncodeDCS(const struct SmsDcs *pDCS, char **ppParam)
             /* not supported */
             break;
         case SMS_GENERAL_GROUP:
-            if (pDCS->msgClass != SMS_CLASS_UNKNOWN) {
-                *temp = 0x10 + pDCS->msgClass;
+            if (pDCS->msgClass != SmsMessageClass::SMS_CLASS_UNKNOWN) {
+                *temp = 0x10 + static_cast<unsigned char>(pDCS->msgClass);
             }
             if (pDCS->bCompressed) {
                 *temp |= 0x20;
             }
             break;
         case SMS_CODING_CLASS_GROUP:
-            *temp = 0xF0 + pDCS->msgClass;
+            *temp = 0xF0 + static_cast<unsigned char>(pDCS->msgClass);
             break;
         default:
             return 0;
@@ -325,16 +325,16 @@ int GsmSmsParamCodec::DecodeTime(const unsigned char *pTpdu, struct SmsTimeStamp
 static enum SmsMessageClass ParseMsgClass(unsigned char dcs)
 {
     switch (dcs & 0x03) {
-        case SMS_INSTANT_MESSAGE:
-            return SMS_INSTANT_MESSAGE;
-        case SMS_OPTIONAL_MESSAGE:
-            return SMS_OPTIONAL_MESSAGE;
-        case SMS_SIM_MESSAGE:
-            return SMS_SIM_MESSAGE;
-        case SMS_FORWARD_MESSAGE:
-            return SMS_FORWARD_MESSAGE;
+        case static_cast<unsigned char>(SmsMessageClass::SMS_INSTANT_MESSAGE):
+            return SmsMessageClass::SMS_INSTANT_MESSAGE;
+        case static_cast<unsigned char>(SmsMessageClass::SMS_OPTIONAL_MESSAGE):
+            return SmsMessageClass::SMS_OPTIONAL_MESSAGE;
+        case static_cast<unsigned char>(SmsMessageClass::SMS_SIM_MESSAGE):
+            return SmsMessageClass::SMS_SIM_MESSAGE;
+        case static_cast<unsigned char>(SmsMessageClass::SMS_FORWARD_MESSAGE):
+            return SmsMessageClass::SMS_FORWARD_MESSAGE;
         default:
-            return SMS_CLASS_UNKNOWN;
+            return SmsMessageClass::SMS_CLASS_UNKNOWN;
     }
 }
 
@@ -373,7 +373,7 @@ static SmsIndicatorType ParseMsgIndicatorType(const unsigned char dcs)
 static void DecodeMWIType(const unsigned char dcs, struct SmsDcs &pDCS)
 {
     pDCS.bCompressed = false;
-    pDCS.msgClass = SMS_CLASS_UNKNOWN;
+    pDCS.msgClass = SmsMessageClass::SMS_CLASS_UNKNOWN;
     pDCS.bMWI = true;
     pDCS.bIndActive = (((dcs & 0x08) >> 0x03) == 0x01) ? true : false;
     pDCS.indType = ParseMsgIndicatorType(dcs & 0x03);
@@ -395,7 +395,7 @@ int GsmSmsParamCodec::DecodeDCS(const unsigned char *pTpdu, struct SmsDcs *pDCS)
         pDCS->codingScheme = ParseMsgCodingScheme((dcs & 0x0C) >> 0x02);
 
         if (((dcs & 0x10) >> 0x04) == 0) {
-            pDCS->msgClass = SMS_CLASS_UNKNOWN;
+            pDCS->msgClass = SmsMessageClass::SMS_CLASS_UNKNOWN;
         } else {
             pDCS->msgClass = ParseMsgClass(dcs & 0x03);
         }
@@ -407,7 +407,7 @@ int GsmSmsParamCodec::DecodeDCS(const unsigned char *pTpdu, struct SmsDcs *pDCS)
     } else if (((dcs & 0xC0) >> 0x06) == 1) {
         pDCS->codingGroup = SMS_DELETION_GROUP;
         pDCS->bCompressed = false;
-        pDCS->msgClass = SMS_CLASS_UNKNOWN;
+        pDCS->msgClass = SmsMessageClass::SMS_CLASS_UNKNOWN;
     } else if (((dcs & 0xF0) >> 0x04) == 0x0C) {
         pDCS->codingGroup = SMS_DISCARD_GROUP;
         DecodeMWIType(dcs, *pDCS);
@@ -423,7 +423,7 @@ int GsmSmsParamCodec::DecodeDCS(const unsigned char *pTpdu, struct SmsDcs *pDCS)
         pDCS->codingGroup = SMS_UNKNOWN_GROUP;
         pDCS->bCompressed = (dcs & 0x20) >> 0x05;
         pDCS->codingScheme = ParseMsgCodingScheme((dcs & 0x0C) >> 0x02);
-        pDCS->msgClass = SMS_CLASS_UNKNOWN;
+        pDCS->msgClass = SmsMessageClass::SMS_CLASS_UNKNOWN;
     }
 
     return offset;

@@ -81,7 +81,7 @@ protected:
     std::string originatingAddress_;
     std::string visibleOriginatingAddress_;
     std::string visibleMessageBody_;
-    enum SmsMessageClass msgClass_ = SMS_CLASS_UNKNOWN;
+    enum SmsMessageClass msgClass_ = SmsMessageClass::SMS_CLASS_UNKNOWN;
     long scTimestamp_;
     int status_;
     int protocolId_;

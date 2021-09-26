@@ -240,7 +240,7 @@ void GsmSmsSender::StatusReportAnalysis(const AppExecFwk::InnerEvent::Pointer &e
     if (deliveryCallback != nullptr) {
         std::string ackpdu = StringUtils::StringToHex(message->GetRawPdu());
         deliveryCallback->OnSmsDeliveryResult(StringUtils::ToUtf16(ackpdu));
-        TELEPHONY_LOGI("gsm_sms_sender: StatusReportAnalysis %{public}s", pdu.c_str());
+        TELEPHONY_LOGI("gsm_sms_sender: StatusReportAnalysis %{public}zu", pdu.length());
     }
 }
 

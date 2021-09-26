@@ -235,7 +235,8 @@ int CdmaSmsPduCodec::EncodeAckMsg(const struct SmsTransAckMsg &ackMsg, unsigned 
     /* 3. Cause code */
     pduStr[offset++] = SMS_TRANS_PARAM_CAUSE_CODES;
     index = offset++;
-    pduStr[offset] |= ackMsg.causeCode.transReplySeq << SHIFT_2BITS;
+    pduStr[offset] |=
+        static_cast<unsigned char>(static_cast<uint32_t>(ackMsg.causeCode.transReplySeq) << SHIFT_2BITS);
     pduStr[offset] |= ackMsg.causeCode.errorClass;
     if (ackMsg.causeCode.errorClass != 0x0) {
         pduStr[++offset] = ackMsg.causeCode.causeCode;
@@ -321,7 +322,7 @@ int CdmaSmsPduCodec::EncodeTelesvcSubmitMsg(const struct SmsTeleSvcSubmit &sbMsg
     if (sbMsg.priority >= SMS_PRIORITY_NORMAL && sbMsg.priority <= SMS_PRIORITY_EMERGENCY) {
         pduStr[offset++] = SMS_BEARER_PRIORITY_INDICATOR;
         pduStr[offset++] = 0x01;
-        pduStr[offset++] = sbMsg.priority << SHIFT_6BITS;
+        pduStr[offset++] = static_cast<unsigned char>(static_cast<uint32_t>(sbMsg.priority) << SHIFT_6BITS);
     }
     /* 7. Reply Option */
     if (sbMsg.replyOpt.userAckReq | sbMsg.replyOpt.deliverAckReq | sbMsg.replyOpt.readAckReq |
@@ -349,7 +350,7 @@ int CdmaSmsPduCodec::EncodeTelesvcSubmitMsg(const struct SmsTeleSvcSubmit &sbMsg
 int CdmaSmsPduCodec::EncodeCbNumber(const SmsTeleSvcAddr &cbNumber, std::vector<unsigned char> &pdustr)
 {
     unsigned char cbData[SMS_TRANS_ADDRESS_MAX_LEN] = {0};
-    unsigned char temp = (cbNumber.digitMode << SHIFT_7BITS);
+    unsigned char temp = static_cast<unsigned char>(static_cast<uint32_t>(cbNumber.digitMode) << SHIFT_7BITS);
     if (cbNumber.digitMode == false) {
         temp |= (cbNumber.addrLen & 0xfe) >> SHIFT_1BITS;
         pdustr.push_back(temp);
@@ -388,7 +389,8 @@ int CdmaSmsPduCodec::EncodeMsgId(const SmsTransMsgId &msgId, const SmsMessageTyp
     }
     pduStr[offset++] = SMS_BEARER_MESSAGE_IDENTIFIER;
     pduStr[offset++] = 0x03;
-    pduStr[offset++] = (type << SHIFT_4BITS) | ((msgId.msgId & 0xf000) >> (BYTE_BITS + SHIFT_4BITS));
+    pduStr[offset++] = static_cast<unsigned char>(
+        (static_cast<uint32_t>(type) << SHIFT_4BITS) | ((msgId.msgId & 0xf000) >> (BYTE_BITS + SHIFT_4BITS)));
     pduStr[offset++] = (msgId.msgId & 0x0ff0) >> (SHIFT_4BITS);
     pduStr[offset++] = ((msgId.msgId & 0x000f) << (SHIFT_4BITS)) | (msgId.headerInd ? 0x08 : 0x00);
     return offset;
@@ -404,7 +406,7 @@ int CdmaSmsPduCodec::EncodeSubAddress(const struct SmsTransSubAddr &address, uns
     pduStr[offset++] = SMS_TRANS_PARAM_ORG_SUB_ADDRESS;
     pduStr[offset] = address.addrLen + 0x02;
     index = offset++;
-    pduStr[offset] |= address.type << SHIFT_5BITS;
+    pduStr[offset] |= static_cast<unsigned char>(static_cast<uint32_t>(address.type) << SHIFT_5BITS);
     pduStr[offset++] |= (address.odd ? 0x10 : 0x00);
     pduStr[offset++] = address.addrLen;
     if (memcpy_s(pduStr + offset, address.addrLen, address.szData, address.addrLen) != EOK) {
@@ -461,7 +463,8 @@ int CdmaSmsPduCodec::EncodeAddress(const SmsTransAddr &address, unsigned char *p
         pduStr[offset++] = address.addrLen;
         int addrLen = SmsCommonUtils::ConvertDigitToDTMF(address.szData, address.addrLen, 0, pduStr + offset);
         for (int j = 0; j < addrLen; j++) {
-            TELEPHONY_LOGD("ADDRESS 4BIT DTMF [%{public}d] = [%{public}02x]", j, pduStr[offset + j]);
+            TELEPHONY_LOGD(
+                "ADDRESS 4BIT DTMF [%{public}d] = [%{public}02x]", j, static_cast<uint32_t>(pduStr[offset + j]));
         }
         offset += addrLen;
         ShiftNBit(&pduStr[index], offset - index + 1, SHIFT_6BITS);
@@ -487,7 +490,7 @@ int CdmaSmsPduCodec::EncodeBearerUserData(const struct SmsTeleSvcUserData &userD
     if (userData.encodeType == SMS_ENCODE_EPM || userData.encodeType == SMS_ENCODE_GSMDCS) {
         pduStr[offset++] = userData.msgType;
     }
-    pduStr[offset++] = userData.encodeType << SHIFT_3BITS;
+    pduStr[offset++] = static_cast<unsigned char>(static_cast<uint32_t>(userData.encodeType) << SHIFT_3BITS);
     pduStr[offset++] = userData.dataLen;
 
     switch (userData.encodeType) {
@@ -830,7 +833,8 @@ void CdmaSmsPduCodec::DecodeP2PEnhancedVmn(
     enhancedVmn.vmMailboxFull = (tempStr[tempOff] & 0x40) ? true : false;
     enhancedVmn.replyAllowed = (tempStr[tempOff] & 0x20) ? true : false;
     enhancedVmn.faxIncluded = (tempStr[tempOff] & 0x10) ? true : false;
-    enhancedVmn.vmLen = ((tempStr[tempOff] >> 0x0f) << SHIFT_8BITS) | tempStr[tempOff + 1];
+    enhancedVmn.vmLen = static_cast<unsigned short>(
+        ((static_cast<uint32_t>(tempStr[tempOff])) << SHIFT_8BITS) | tempStr[tempOff + 1]);
     tempOff += HEX_BYTE_STEP;
     enhancedVmn.vmRetDay = tempStr[tempOff] >> SHIFT_1BITS;
     ShiftNBitForDecode(tempStr, tempLen, SHIFT_7BITS);
@@ -1475,7 +1479,8 @@ int CdmaSmsPduCodec::EncodeUserData(const unsigned char *src, unsigned char *des
     int j = 0;
     for (int i = 0; i < srcSize; i++) {
         shift = j % ENCODE_GSM_BIT;
-        dest[j++] = (temp[i] << shift) + (temp[i + 0x01] >> (ENCODE_GSM_BIT - shift));
+        dest[j++] = static_cast<unsigned char>((static_cast<uint32_t>(temp[i]) << shift) +
+            (static_cast<uint32_t>(temp[i + 0x01]) >> (ENCODE_GSM_BIT - shift)));
         if (shift == 0x06) {
             i++;
         }

@@ -48,7 +48,7 @@ void SmsReceiveHandler::ProcessEvent(const AppExecFwk::InnerEvent::Pointer &even
             std::shared_ptr<SmsBaseMessage> message = nullptr;
             message = TransformMessageInfo(event->GetSharedObject<SmsMessageInfo>());
             if (message != nullptr) {
-                TELEPHONY_LOGD("[raw pdu] =%{public}s", StringUtils::StringToHex(message->GetRawPdu()).c_str());
+                TELEPHONY_LOGD("[raw pdu size] =%{public}zu", message->GetRawPdu().size());
             }
             HandleReceivedSms(message);
             break;
@@ -142,13 +142,25 @@ void SmsReceiveHandler::SendBroadcast(const shared_ptr<vector<string>> &pdus)
         TELEPHONY_LOGE("pdus is nullptr");
         return;
     }
+
+    std::string fullPdu;
+    for (const auto &it : *pdus) {
+        if (!it.empty()) {
+            fullPdu.append(it);
+            fullPdu.append(":");
+        }
+    }
+    if (!fullPdu.empty()) {
+        fullPdu.pop_back();
+    }
+
     Want want;
     want.SetAction("usual.event.SMS_RECEIVE_COMPLETED");
     want.SetParam("pdu", *pdus);
     CommonEventData data;
     data.SetWant(want);
     data.SetCode(MSG_RECEIVE_CODE);
-    data.SetData("SMS MSG RECEIVE");
+    data.SetData(fullPdu);
     CommonEventPublishInfo publishInfo;
     publishInfo.SetOrdered(true);
     bool publishResult = CommonEventManager::PublishCommonEvent(data, publishInfo, nullptr);

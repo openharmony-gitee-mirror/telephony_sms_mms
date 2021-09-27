@@ -51,6 +51,8 @@ public:
     void HandleMessageResponse(const std::shared_ptr<SmsSendIndexer> &smsIndexer);
     virtual void ProcessEvent(const AppExecFwk::InnerEvent::Pointer &event) override;
     virtual void Init() = 0;
+    virtual void ResendTextDelivery(const std::shared_ptr<SmsSendIndexer> &smsIndexer) = 0;
+    virtual void ResendDataDelivery(const std::shared_ptr<SmsSendIndexer> &smsIndexer) = 0;
 
     static void SendResultCallBack(
         const std::shared_ptr<SmsSendIndexer> &indexer, ISendShortMessageCallback::SmsSendResult result);

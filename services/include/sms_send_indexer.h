@@ -22,6 +22,8 @@
 #include <vector>
 
 #include "i_sms_service_interface.h"
+#include "gsm_pdu_code_type.h"
+#include "sms_base_message.h"
 #include "sms_common.h"
 
 namespace OHOS {
@@ -83,6 +85,14 @@ public:
     void SetEncodeSmca(const std::vector<uint8_t> &&smca);
     void SetAckPdu(const std::vector<uint8_t> &&ackPdu);
     void SetData(const std::vector<uint8_t> &&data);
+    void SetDcs(enum SmsCodingScheme dcs);
+    enum SmsCodingScheme GetDcs() const;
+    bool GetIsConcat() const;
+    void SetIsConcat(bool concat);
+    void SetSmsConcat(const SmsConcat &smsConcat);
+    SmsConcat GetSmsConcat() const;
+    uint8_t GetLangId() const;
+    void SetLangId(uint8_t langId);
 
 private:
     std::vector<uint8_t> pdu_;
@@ -90,7 +100,6 @@ private:
     std::vector<uint8_t> ackPdu_;
     std::vector<uint8_t> data_;
     uint8_t errorCode_ = 0;
-    bool isText_ = false;
     std::string text_;
     NetWorkType netWorkType_ = NetWorkType::NET_TYPE_UNKNOWN;
     std::string scAddr_;
@@ -107,6 +116,11 @@ private:
     sptr<ISendShortMessageCallback> sendCallback_ = nullptr;
     sptr<IDeliveryShortMessageCallback> deliveryCallback_ = nullptr;
     bool isFailure_ = false;
+    enum SmsCodingScheme dcs_;
+    bool isConcat_ = false;
+    SmsConcat smsConcat_;
+    uint8_t langId_ = 0;
+    bool isText_ = false;
 };
 } // namespace Telephony
 } // namespace OHOS

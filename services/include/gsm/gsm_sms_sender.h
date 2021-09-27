@@ -44,15 +44,17 @@ public:
         const uint8_t *data, uint32_t dataLen, const sptr<ISendShortMessageCallback> &sendCallback,
         const sptr<IDeliveryShortMessageCallback> &deliveryCallback) override;
     void SendSmsToRil(const std::shared_ptr<SmsSendIndexer> &smsIndexer) override;
+    void ResendTextDelivery(const std::shared_ptr<SmsSendIndexer> &smsIndexer) override;
+    void ResendDataDelivery(const std::shared_ptr<SmsSendIndexer> &smsIndexer) override;
 
 protected:
     void StatusReportAnalysis(const AppExecFwk::InnerEvent::Pointer &event) override;
 
 private:
-    void SetSendIndexerInfo(std::shared_ptr<SmsSendIndexer> &indexer,
+    void SetSendIndexerInfo(const std::shared_ptr<SmsSendIndexer> &indexer,
         const std::shared_ptr<struct EncodeInfo> &encodeInfo, unsigned char msgRef8bit);
     bool RegisterHandler();
-
+    bool SetPduInfo(const std::shared_ptr<SmsSendIndexer> &smsIndexer, GsmSmsMessage &gsmSmsMessage, bool &isMore);
     std::mutex mutex_;
 };
 } // namespace Telephony

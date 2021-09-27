@@ -42,7 +42,7 @@ enum SmsTon {
 };
 
 // from 3GPP TS 23.038 V4.3.0 5 CBS Data Coding Scheme
-enum SmsMessageClass {
+enum class SmsMessageClass {
     /** class0 Indicates an instant message, which is displayed immediately after being received. */
     SMS_INSTANT_MESSAGE = 0,
     /** class1 Indicates an SMS message that can be stored on the device or SIM card based on the storage status. */

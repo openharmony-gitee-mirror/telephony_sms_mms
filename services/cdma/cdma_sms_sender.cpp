@@ -82,7 +82,7 @@ void CdmaSmsSender::StatusReportAnalysis(const AppExecFwk::InnerEvent::Pointer &
                     if (deliveryCallback != nullptr) {
                         std::string ackpdu = StringUtils::StringToHex(message->GetRawPdu());
                         deliveryCallback->OnSmsDeliveryResult(StringUtils::ToUtf16(ackpdu));
-                        TELEPHONY_LOGE("gsm_sms_sender: StatusReportAnalysis %{public}s", pdu.c_str());
+                        TELEPHONY_LOGE("gsm_sms_sender: StatusReportAnalysis %{public}zu", pdu.length());
                     }
                     isSent = true;
                 }
@@ -123,5 +123,9 @@ void CdmaSmsSender::ReceiveStatusReport(const std::shared_ptr<SmsReceiveIndexer>
 {
     SendEvent(ObserverHandler::RADIO_SMS_STATUS, smsIndexer);
 }
+
+void CdmaSmsSender::ResendTextDelivery(const std::shared_ptr<SmsSendIndexer> &smsIndexer) {}
+
+void CdmaSmsSender::ResendDataDelivery(const std::shared_ptr<SmsSendIndexer> &smsIndexer) {}
 } // namespace Telephony
 } // namespace OHOS

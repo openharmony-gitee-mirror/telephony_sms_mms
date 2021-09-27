@@ -12,34 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef SMS_MMS_GTEST_H
-#define SMS_MMS_GTEST_H
 
-#include "gtest/gtest.h"
-#include "if_system_ability_manager.h"
-#include "ipc_skeleton.h"
-#include "iservice_registry.h"
-#include "i_sms_service_interface.h"
-#include "sms_service_proxy.h"
-#include "system_ability_definition.h"
+#include "sms_mms_gtest.h"
 
 #include "string_utils.h"
 
 namespace OHOS {
 namespace Telephony {
-namespace {
-sptr<ISmsServiceInterface> g_telephonyService = nullptr;
-} // namespace
-
-using namespace testing::ext;
-class SmsMmsGtest : public testing::Test {
-public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
-    void SetUp();
-    void TearDown();
-    static sptr<ISmsServiceInterface> GetProxy();
-};
+sptr<ISmsServiceInterface> SmsMmsGtest::g_telephonyService = nullptr;
 
 void SmsMmsGtest::TearDownTestCase() {}
 
@@ -315,4 +295,3 @@ HWTEST_F(SmsMmsGtest, SetSmscAddr_0001, TestSize.Level1)
 }
 } // namespace Telephony
 } // namespace OHOS
-#endif

@@ -235,7 +235,8 @@ int CdmaSmsPduCodec::EncodeAckMsg(const struct SmsTransAckMsg &ackMsg, unsigned 
     /* 3. Cause code */
     pduStr[offset++] = SMS_TRANS_PARAM_CAUSE_CODES;
     index = offset++;
-    pduStr[offset] |= static_cast<unsigned char>(static_cast<uint32_t>(ackMsg.causeCode.transReplySeq) << SHIFT_2BITS);
+    pduStr[offset] |=
+        static_cast<unsigned char>(static_cast<uint32_t>(ackMsg.causeCode.transReplySeq) << SHIFT_2BITS);
     pduStr[offset] |= ackMsg.causeCode.errorClass;
     if (ackMsg.causeCode.errorClass != 0x0) {
         pduStr[++offset] = ackMsg.causeCode.causeCode;
@@ -388,7 +389,8 @@ int CdmaSmsPduCodec::EncodeMsgId(const SmsTransMsgId &msgId, const SmsMessageTyp
     }
     pduStr[offset++] = SMS_BEARER_MESSAGE_IDENTIFIER;
     pduStr[offset++] = 0x03;
-    pduStr[offset++] = (type << SHIFT_4BITS) | ((msgId.msgId & 0xf000) >> (BYTE_BITS + SHIFT_4BITS));
+    pduStr[offset++] = static_cast<unsigned char>(
+        (static_cast<uint32_t>(type) << SHIFT_4BITS) | ((msgId.msgId & 0xf000) >> (BYTE_BITS + SHIFT_4BITS)));
     pduStr[offset++] = (msgId.msgId & 0x0ff0) >> (SHIFT_4BITS);
     pduStr[offset++] = ((msgId.msgId & 0x000f) << (SHIFT_4BITS)) | (msgId.headerInd ? 0x08 : 0x00);
     return offset;
@@ -832,7 +834,7 @@ void CdmaSmsPduCodec::DecodeP2PEnhancedVmn(
     enhancedVmn.replyAllowed = (tempStr[tempOff] & 0x20) ? true : false;
     enhancedVmn.faxIncluded = (tempStr[tempOff] & 0x10) ? true : false;
     enhancedVmn.vmLen = static_cast<unsigned short>(
-        ((static_cast<uint32_t>(tempStr[tempOff]) >> 0x0f) << SHIFT_8BITS) | tempStr[tempOff + 1]);
+        ((static_cast<uint32_t>(tempStr[tempOff])) << SHIFT_8BITS) | tempStr[tempOff + 1]);
     tempOff += HEX_BYTE_STEP;
     enhancedVmn.vmRetDay = tempStr[tempOff] >> SHIFT_1BITS;
     ShiftNBitForDecode(tempStr, tempLen, SHIFT_7BITS);

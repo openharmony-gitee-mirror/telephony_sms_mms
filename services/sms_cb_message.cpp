@@ -489,7 +489,7 @@ void SmsCbMessage::DecodeCbMsgDCS(
     const unsigned char dcsData, const unsigned short iosData, SmsCbMessageDcs &pDcs) const
 {
     pDcs.codingGroup = SMS_CBMSG_CODGRP_GENERAL_DCS;
-    pDcs.classType = SMS_CLASS_UNKNOWN;
+    pDcs.classType = static_cast<unsigned char>(SmsMessageClass::SMS_CLASS_UNKNOWN);
     pDcs.bCompressed = false;
     pDcs.codingScheme = SMS_CODING_7BIT;
     pDcs.langType = SMS_CBMSG_LANG_UNSPECIFIED;

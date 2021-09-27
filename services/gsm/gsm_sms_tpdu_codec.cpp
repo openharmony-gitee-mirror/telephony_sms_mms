@@ -388,7 +388,7 @@ int GsmSmsTpduCodec::DecodeSubmit(const unsigned char *pSubpdu, int pduLen, stru
     if (pSubpdu == nullptr || pSmsSub == nullptr) {
         return offset;
     }
-    DebugTpdu(pSubpdu, pduLen, DECODE_SUBMIT_TYPE);
+    DebugTpdu(pSubpdu, pduLen, DecodeType::DECODE_SUBMIT_TYPE);
     // TP-RD
     if (pSubpdu[offset] & 0x04) {
         pSmsSub->bRejectDup = false;
@@ -470,7 +470,7 @@ int GsmSmsTpduCodec::DecodeDeliver(const unsigned char *pTpdu, int TpduLen, stru
     if (pTpdu == nullptr || pDeliver == nullptr) {
         return offset;
     }
-    DebugTpdu(pTpdu, TpduLen, DECODE_DELIVER_TYPE);
+    DebugTpdu(pTpdu, TpduLen, DecodeType::DECODE_DELIVER_TYPE);
     DecodePartData(pTpdu[offset], *pDeliver);
     offset++;
     tmpOffset = offset;
@@ -552,7 +552,7 @@ int GsmSmsTpduCodec::DecodeStatusReport(const unsigned char *pTpdu, int TpduLen,
         pStatusRep->dcs.bCompressed = false;
         pStatusRep->dcs.bMWI = false;
         pStatusRep->dcs.bIndActive = false;
-        pStatusRep->dcs.msgClass = SMS_CLASS_UNKNOWN;
+        pStatusRep->dcs.msgClass = SmsMessageClass::SMS_CLASS_UNKNOWN;
         pStatusRep->dcs.codingScheme = SMS_CODING_7BIT;
         pStatusRep->dcs.codingGroup = SMS_GENERAL_GROUP;
         pStatusRep->dcs.indType = SMS_OTHER_INDICATOR;
@@ -603,11 +603,11 @@ void GsmSmsTpduCodec::DebugTpdu(const unsigned char *pTpdu, int TpduLen, const e
         }
     }
     switch (type) {
-        case DECODE_SUBMIT_TYPE:
+        case DecodeType::DECODE_SUBMIT_TYPE:
             break;
-        case DECODE_DELIVER_TYPE:
+        case DecodeType::DECODE_DELIVER_TYPE:
             break;
-        case DECODE_STATUS_REP_TYPE:
+        case DecodeType::DECODE_STATUS_REP_TYPE:
             break;
         default:
             break;

@@ -152,7 +152,6 @@ int main()
         std::cin.ignore();
         std::cin.sync();
         if (caseNumber < -1 || caseNumber >= caseCount) {
-            std::cout << "test case is not exist!" << std::endl;
             continue;
         }
         if (caseNumber == -1) {

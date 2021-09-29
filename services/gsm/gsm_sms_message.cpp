@@ -723,8 +723,7 @@ bool GsmSmsMessage::GetIsTypeZeroInd() const
 bool GsmSmsMessage::GetIsSIMDataTypeDownload() const
 {
     int protocolId = GetProtocolId();
-    return (GetMessageClass() == SmsMessageClass::SMS_SIM_MESSAGE) &&
-        (protocolId == 0x7f || protocolId == 0x7c);
+    return (GetMessageClass() == SmsMessageClass::SMS_SIM_MESSAGE) && (protocolId == 0x7f || protocolId == 0x7c);
 }
 
 void GsmSmsMessage::ConvertMsgTimeStamp(const struct SmsTimeStamp &times)

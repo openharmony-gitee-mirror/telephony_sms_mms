@@ -123,5 +123,9 @@ void CdmaSmsSender::ReceiveStatusReport(const std::shared_ptr<SmsReceiveIndexer>
 {
     SendEvent(ObserverHandler::RADIO_SMS_STATUS, smsIndexer);
 }
+
+void CdmaSmsSender::ResendTextDelivery(const std::shared_ptr<SmsSendIndexer> &smsIndexer) {}
+
+void CdmaSmsSender::ResendDataDelivery(const std::shared_ptr<SmsSendIndexer> &smsIndexer) {}
 } // namespace Telephony
 } // namespace OHOS

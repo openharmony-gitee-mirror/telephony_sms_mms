@@ -225,7 +225,8 @@ ShortMessage *ShortMessage::CreateMessage(std::vector<unsigned char> &pdu, std::
     return message;
 }
 
-ShortMessage ShortMessage::CreateIccMessage(std::vector<unsigned char> &pdu, std::string specification, int32_t index)
+ShortMessage ShortMessage::CreateIccMessage(
+    std::vector<unsigned char> &pdu, std::string specification, int32_t index)
 {
     ShortMessage message;
     message.simMessageStatus_ = SMS_SIM_MESSAGE_STATUS_FREE;

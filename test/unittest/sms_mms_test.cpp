@@ -35,11 +35,7 @@ static const ShortMessage *g_shortMessage = nullptr;
 using TestStruct = struct FunStruct {
     std::string funName;
     std::function<void(void)> fun;
-    FunStruct(std::string name, std::function<void(void)> function)
-    {
-        funName = name;
-        fun = function;
-    }
+    FunStruct(std::string name, std::function<void(void)> function) : funName(name), fun(function) {}
 };
 
 void TestRecev()
@@ -127,12 +123,10 @@ int main()
     if ((systemAbilityMgr == nullptr) ||
         ((remote = systemAbilityMgr->CheckSystemAbility(TELEPHONY_SMS_MMS_SYS_ABILITY_ID)) == nullptr) ||
         ((smsService = iface_cast<ISmsServiceInterface>(remote))) == nullptr) {
-        std::cout << "connect to service failed." << std::endl;
         return 0;
     }
     testFunArray = GetFunArray(smsService);
     if (testFunArray == nullptr || ((caseCount = testFunArray->size()) <= 0)) {
-        std::cout << "Failed to get testFunArray data!" << std::endl;
         if (::g_shortMessage != nullptr) {
             delete ::g_shortMessage;
             ::g_shortMessage = nullptr;

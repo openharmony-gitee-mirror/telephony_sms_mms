@@ -17,8 +17,8 @@
 #ifndef SMS_CB_MESSAGE_H
 #define SMS_CB_MESSAGE_H
 
+#include <ctime>
 #include <memory>
-#include <time.h>
 #include <string>
 
 #include "gsm_pdu_code_type.h"

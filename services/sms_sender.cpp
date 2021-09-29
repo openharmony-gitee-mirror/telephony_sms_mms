@@ -35,9 +35,9 @@ void SmsSender::ProcessEvent(const AppExecFwk::InnerEvent::Pointer &event)
         TELEPHONY_LOGE("event is nullptr");
         return;
     }
-    TELEPHONY_LOGD("SmsSender::ProcessEvent");
     shared_ptr<SmsSendIndexer> smsIndexer = nullptr;
     int eventId = event->GetInnerEventId();
+    TELEPHONY_LOGI("SmsSender::ProcessEvent eventId %{public}d", eventId);
     switch (eventId) {
         case ObserverHandler::RADIO_SEND_SMS:
         case ObserverHandler::RADIO_SEND_IMS_GSM_SMS:
@@ -58,6 +58,7 @@ void SmsSender::ProcessEvent(const AppExecFwk::InnerEvent::Pointer &event)
             break;
         }
         default:
+            TELEPHONY_LOGE("SmsSender::ProcessEvent Unknown %{public}d", eventId);
             break;
     }
 }
@@ -82,9 +83,6 @@ void SmsSender::HandleMessageResponse(const shared_ptr<SmsSendIndexer> &smsIndex
         }
         SendMessageSucceed(smsIndexer);
     } else {
-        if (smsIndexer->GetPsResendCount() > 0) {
-            smsIndexer->SetCsResendCount(MAX_SEND_RETRIES);
-        }
         HandleResend(smsIndexer);
     }
 }
@@ -273,15 +271,10 @@ void SmsSender::HandleResend(const std::shared_ptr<SmsSendIndexer> &smsIndexer)
         TELEPHONY_LOGE("smsIndexer is nullptr");
         return;
     }
-    if (!GetImsDomain()) {
-        sptr<ISendShortMessageCallback> sendShortMessageCallback = smsIndexer->GetSendCallback();
-        if (sendShortMessageCallback != nullptr) {
-            sendShortMessageCallback->OnSmsSendResult(
-                (ISendShortMessageCallback::SmsSendResult)(smsIndexer->GetErrorCode()));
-        }
-        // resending mechanism
-    } else if ((smsIndexer->GetErrorCode() == HRIL_ERR_CMD_SEND_FAILURE) &&
-        smsIndexer->GetCsResendCount() < MAX_SEND_RETRIES) {
+    // resending mechanism
+    if (((smsIndexer->GetErrorCode() == HRIL_ERR_GENERIC_FAILURE) ||
+        (smsIndexer->GetErrorCode() == HRIL_ERR_CMD_SEND_FAILURE)) &&
+        (smsIndexer->GetCsResendCount() < MAX_SEND_RETRIES)) {
         smsIndexer->SetCsResendCount(smsIndexer->GetCsResendCount() + 1);
         SendEvent(MSG_SMS_RETRY_DELIVERY, smsIndexer, DELAY_MAX_TIME_MSCE);
     } else {

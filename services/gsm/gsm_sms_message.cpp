@@ -568,6 +568,7 @@ void GsmSmsMessage::AnalysisMsgSubmit(const SmsSubmit &submit)
     msgRef_ = submit.msgRef;
     bStatusReportMessage_ = submit.bStatusReport;
     bHeaderInd_ = submit.bHeaderInd;
+    originatingAddress_ = submit.destAddress.address;
     ConvertMsgTimeStamp(submit.validityPeriod);
     ConvertMessageDcs();
     ConvertUserData();
@@ -723,8 +724,7 @@ bool GsmSmsMessage::GetIsTypeZeroInd() const
 bool GsmSmsMessage::GetIsSIMDataTypeDownload() const
 {
     int protocolId = GetProtocolId();
-    return (GetMessageClass() == SmsMessageClass::SMS_SIM_MESSAGE) &&
-        (protocolId == 0x7f || protocolId == 0x7c);
+    return (GetMessageClass() == SmsMessageClass::SMS_SIM_MESSAGE) && (protocolId == 0x7f || protocolId == 0x7c);
 }
 
 void GsmSmsMessage::ConvertMsgTimeStamp(const struct SmsTimeStamp &times)

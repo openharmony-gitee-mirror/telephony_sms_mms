@@ -93,11 +93,21 @@ void SmsSendManager::TextBasedSmsDelivery(const string &desAddr, const string &s
     const sptr<ISendShortMessageCallback> &sendCallback,
     const sptr<IDeliveryShortMessageCallback> &deliveryCallback)
 {
+    if (gsmSmsSender_ == nullptr || cdmaSmsSender_ == nullptr) {
+        SmsSender::SendResultCallBack(sendCallback, ISendShortMessageCallback::SEND_SMS_FAILURE_UNKNOWN);
+        TELEPHONY_LOGE("gsmSmsSender or cdmaSmsSender nullptr error.");
+        return;
+    }
+
     NetWorkType netWorkType = GetNetWorkType();
     if (netWorkType == NetWorkType::NET_TYPE_GSM) {
         gsmSmsSender_->TextBasedSmsDelivery(desAddr, scAddr, text, sendCallback, deliveryCallback);
     } else if (netWorkType == NetWorkType::NET_TYPE_CDMA) {
         cdmaSmsSender_->TextBasedSmsDelivery(desAddr, scAddr, text, sendCallback, deliveryCallback);
+    } else {
+        SmsSender::SendResultCallBack(
+            sendCallback, ISendShortMessageCallback::SEND_SMS_FAILURE_SERVICE_UNAVAILABLE);
+        TELEPHONY_LOGI("network unknown send error.");
     }
 }
 
@@ -105,11 +115,21 @@ void SmsSendManager::DataBasedSmsDelivery(const string &desAddr, const string &s
     const uint8_t *data, uint16_t dataLen, const sptr<ISendShortMessageCallback> &sendCallback,
     const sptr<IDeliveryShortMessageCallback> &deliveryCallback)
 {
+    if (gsmSmsSender_ == nullptr || cdmaSmsSender_ == nullptr) {
+        SmsSender::SendResultCallBack(sendCallback, ISendShortMessageCallback::SEND_SMS_FAILURE_UNKNOWN);
+        TELEPHONY_LOGE("gsmSmsSender or cdmaSmsSender nullptr error.");
+        return;
+    }
+
     NetWorkType netWorkType = GetNetWorkType();
     if (netWorkType == NetWorkType::NET_TYPE_GSM) {
         gsmSmsSender_->DataBasedSmsDelivery(desAddr, scAddr, port, data, dataLen, sendCallback, deliveryCallback);
     } else if (netWorkType == NetWorkType::NET_TYPE_CDMA) {
         cdmaSmsSender_->DataBasedSmsDelivery(desAddr, scAddr, port, data, dataLen, sendCallback, deliveryCallback);
+    } else {
+        SmsSender::SendResultCallBack(
+            sendCallback, ISendShortMessageCallback::SEND_SMS_FAILURE_SERVICE_UNAVAILABLE);
+        TELEPHONY_LOGI("network unknown send error.");
     }
 }
 
@@ -119,46 +139,48 @@ void SmsSendManager::RetriedSmsDelivery(const shared_ptr<SmsSendIndexer> smsInde
         TELEPHONY_LOGE("smsIndexer is nullptr");
         return;
     }
+    if (gsmSmsSender_ == nullptr || cdmaSmsSender_ == nullptr) {
+        TELEPHONY_LOGE("gsmSmsSender or cdmaSmsSender nullptr error.");
+        return;
+    }
+
     NetWorkType oldNetWorkType = smsIndexer->GetNetWorkType();
     NetWorkType newNetWorkType = GetNetWorkType();
+    TELEPHONY_LOGE("oldNetWorkType = %{public}d newNetWorkType = %{public}d", oldNetWorkType, newNetWorkType);
     if (oldNetWorkType != newNetWorkType) {
+        smsIndexer->SetNetWorkType(newNetWorkType);
+        shared_ptr<SmsSendIndexer> indexer = smsIndexer;
         switch (newNetWorkType) {
             case NetWorkType::NET_TYPE_CDMA:
                 if (smsIndexer->GetIsText()) {
-                    cdmaSmsSender_->TextBasedSmsDelivery(smsIndexer->GetDestAddr(), smsIndexer->GetSmcaAddr(),
-                        smsIndexer->GetText(), smsIndexer->GetSendCallback(), smsIndexer->GetDeliveryCallback());
+                    cdmaSmsSender_->ResendTextDelivery(indexer);
                 } else {
-                    const uint8_t *data = smsIndexer->GetData().data();
-                    cdmaSmsSender_->DataBasedSmsDelivery(smsIndexer->GetDestAddr(), smsIndexer->GetSmcaAddr(),
-                        smsIndexer->GetDestPort(), data, smsIndexer->GetData().size(),
-                        smsIndexer->GetSendCallback(), smsIndexer->GetDeliveryCallback());
+                    cdmaSmsSender_->ResendDataDelivery(indexer);
                 }
                 break;
             case NetWorkType::NET_TYPE_GSM:
                 if (smsIndexer->GetIsText()) {
-                    gsmSmsSender_->TextBasedSmsDelivery(smsIndexer->GetDestAddr(), smsIndexer->GetSmcaAddr(),
-                        smsIndexer->GetText(), smsIndexer->GetSendCallback(), smsIndexer->GetDeliveryCallback());
+                    gsmSmsSender_->ResendTextDelivery(indexer);
                 } else {
-                    const uint8_t *data = smsIndexer->GetData().data();
-                    gsmSmsSender_->DataBasedSmsDelivery(smsIndexer->GetDestAddr(), smsIndexer->GetSmcaAddr(),
-                        smsIndexer->GetDestPort(), data, smsIndexer->GetData().size(),
-                        smsIndexer->GetSendCallback(), smsIndexer->GetDeliveryCallback());
+                    gsmSmsSender_->ResendDataDelivery(indexer);
                 }
                 break;
             default:
-                TELEPHONY_LOGI("Network Unknown.");
-                if (smsIndexer->GetSendCallback() != nullptr) {
-                    smsIndexer->GetSendCallback()->OnSmsSendResult(
-                        ISendShortMessageCallback::SEND_SMS_FAILURE_SERVICE_UNAVAILABLE);
-                }
+                SmsSender::SendResultCallBack(
+                    smsIndexer, ISendShortMessageCallback::SEND_SMS_FAILURE_SERVICE_UNAVAILABLE);
+                TELEPHONY_LOGI("network unknown send error.");
                 break;
         }
+        return;
+    }
+
+    if (newNetWorkType == NetWorkType::NET_TYPE_GSM) {
+        gsmSmsSender_->SendSmsToRil(smsIndexer);
+    } else if (newNetWorkType == NetWorkType::NET_TYPE_CDMA) {
+        cdmaSmsSender_->SendSmsToRil(smsIndexer);
     } else {
-        if (newNetWorkType == NetWorkType::NET_TYPE_GSM) {
-            gsmSmsSender_->SendSmsToRil(smsIndexer);
-        } else if (newNetWorkType == NetWorkType::NET_TYPE_CDMA) {
-            cdmaSmsSender_->SendSmsToRil(smsIndexer);
-        }
+        SmsSender::SendResultCallBack(smsIndexer, ISendShortMessageCallback::SEND_SMS_FAILURE_SERVICE_UNAVAILABLE);
+        TELEPHONY_LOGI("Network Unknown.");
     }
 }
 

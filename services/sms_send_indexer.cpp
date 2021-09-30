@@ -22,14 +22,14 @@ SmsSendIndexer::SmsSendIndexer(const string &desAddr, const string &scAddr, cons
     const sptr<ISendShortMessageCallback> &sendCallback,
     const sptr<IDeliveryShortMessageCallback> &deliveryCallback)
     : text_(text), scAddr_(scAddr), destAddr_(desAddr), sendCallback_(sendCallback),
-      deliveryCallback_(deliveryCallback)
+      deliveryCallback_(deliveryCallback), isText_(true)
 {}
 
 SmsSendIndexer::SmsSendIndexer(const string &desAddr, const string &scAddr, int32_t port, const uint8_t *data,
     uint32_t dataLen, const sptr<ISendShortMessageCallback> &sendCallback,
     const sptr<IDeliveryShortMessageCallback> &deliveryCallback)
     : data_(std::vector<uint8_t>(data, data + dataLen)), scAddr_(scAddr), destAddr_(desAddr), destPort_(port),
-      sendCallback_(sendCallback), deliveryCallback_(deliveryCallback)
+      sendCallback_(sendCallback), deliveryCallback_(deliveryCallback), isText_(false)
 {}
 
 SmsSendIndexer::~SmsSendIndexer() {}
@@ -278,6 +278,46 @@ void SmsSendIndexer::UpdatePduForResend()
         pdu_[0] |= 0x04; // TP-RD
         pdu_[1] = msgRefId_; // TP-MR
     }
+}
+
+void SmsSendIndexer::SetDcs(enum SmsCodingScheme dcs)
+{
+    dcs_ = dcs;
+}
+
+enum SmsCodingScheme SmsSendIndexer::GetDcs() const
+{
+    return dcs_;
+}
+
+bool SmsSendIndexer::GetIsConcat() const
+{
+    return isConcat_;
+}
+
+void SmsSendIndexer::SetIsConcat(bool concat)
+{
+    isConcat_ = concat;
+}
+
+void SmsSendIndexer::SetSmsConcat(const SmsConcat &smsConcat)
+{
+    smsConcat_ = smsConcat;
+}
+
+SmsConcat SmsSendIndexer::GetSmsConcat() const
+{
+    return smsConcat_;
+}
+
+uint8_t SmsSendIndexer::GetLangId() const
+{
+    return langId_;
+}
+
+void SmsSendIndexer::SetLangId(uint8_t langId)
+{
+    langId_ = langId;
 }
 } // namespace Telephony
 } // namespace OHOS

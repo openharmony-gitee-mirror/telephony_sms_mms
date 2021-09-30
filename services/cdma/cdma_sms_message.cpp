@@ -163,9 +163,9 @@ void CdmaSmsMessage::AnalsisDeliverMwi(const SmsTransP2PMsg &p2pMsg)
 
 void CdmaSmsMessage::AnalsisDeliverMsg(const SmsTeleSvcDeliver &deliver)
 {
-    msgClass_ = SMS_CLASS_UNKNOWN;
+    msgClass_ = SmsMessageClass::SMS_CLASS_UNKNOWN;
     if (deliver.displayMode == SMS_DISPLAY_IMMEDIATE) {
-        msgClass_ = SMS_INSTANT_MESSAGE;
+        msgClass_ = SmsMessageClass::SMS_INSTANT_MESSAGE;
     }
 
     msgRef_ = deliver.msgId.msgId;
@@ -239,7 +239,7 @@ void CdmaSmsMessage::AnalsisUserData(const SmsTeleSvcUserData &userData)
 
 void CdmaSmsMessage::AnalsisCMASMsg(const SmsTeleSvcDeliver &deliver)
 {
-    msgClass_ = SMS_CLASS_UNKNOWN;
+    msgClass_ = SmsMessageClass::SMS_CLASS_UNKNOWN;
     scTimestamp_ = SmsCommonUtils::ConvertTime(deliver.timeStamp);
     SmsTeleSvcUserData userData;
     (void)memset_s(&userData, sizeof(SmsTeleSvcUserData), 0x00, sizeof(SmsTeleSvcUserData));

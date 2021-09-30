@@ -25,7 +25,7 @@ namespace Telephony {
 #define HEX_BYTE_STEP 2
 enum SmsMTIType { SMS_MTI_DELIVER = 0, SMS_MTI_SUBMIT, SMS_MTI_STATUS_REP };
 
-enum DecodeType {
+enum class DecodeType {
     DECODE_SUBMIT_TYPE,
     DECODE_DELIVER_TYPE,
     DECODE_STATUS_REP_TYPE,

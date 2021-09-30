@@ -278,7 +278,6 @@ bool GsmSmsSender::RegisterHandler()
     return ret;
 }
 
-
 void GsmSmsSender::ResendTextDelivery(const std::shared_ptr<SmsSendIndexer> &smsIndexer)
 {
     if (smsIndexer == nullptr) {

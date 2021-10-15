@@ -1,27 +1,27 @@
 # 短彩信<a name="ZH-CN_TOPIC_0000001105544742"></a>
 
--   [简介](#section117mcpsimp)
--   [目录](#section125mcpsimp)
--   [约束](#section129mcpsimp)
--   [接口说明](#section134mcpsimp)
--   [使用说明](#section170mcpsimp)
-    -   [发送短信](#section172mcpsimp)
-    -   [创建ShortMessage对象](#section181mcpsimp)
 
--   [相关仓](#section189mcpsimp)
+- [简介<a name="section117mcpsimp"></a>](#简介)
+- [目录<a name="section125mcpsimp"></a>](#目录)
+- [约束<a name="section129mcpsimp"></a>](#约束)
+- [接口说明<a name="section134mcpsimp"></a>](#接口说明)
+- [使用说明<a name="section170mcpsimp"></a>](#使用说明)
+  - [发送短信<a name="section172mcpsimp"></a>](#发送短信)
+  - [创建ShortMessage对象<a name="section181mcpsimp"></a>](#创建shortmessage对象)
+- [相关仓<a name="section189mcpsimp"></a>](#相关仓)
 
 ## 简介<a name="section117mcpsimp"></a>
 
-短彩信业务为移动数据用户提供短信收发和彩信编解码功能。主要功能有GSM/CDMA短信收发、短信PDU（Protocol data unit，协议数据单元）编解码、Wap Push接收处理 、小区广播接收、彩信通知、 彩信编解码和SIM短信记录增删改查等。
+短彩信模块为移动数据用户提供短信收发和彩信编解码功能，主要功能有GSM/CDMA短信收发、短信PDU（Protocol data unit，协议数据单元）编解码、Wap Push接收处理 、小区广播接收、彩信通知、 彩信编解码和SIM卡短信记录增删改查等。
 
 **图 1**  短彩信模块架构图<a name="fig420553511549"></a>
 ![](figures/zh-cn_architecture-of-the-sms-and-mms-module.png)
 
 短彩信模块由接口管理类、短信发送管理类、短信接收管理类，和彩信编解码工具类组成。其中：
 
--   接口管理类：SmsInterfaceManager 负责对外提供短信发送、SIM短信记录操作和配置相关接口，负责创建SmsSendManager 和SmsReceiveManager 对象。
--   短信发送管理类： SmsSendManager 负责listen IMS网络状态；创建GSM\(GsmSmsSender\) 和CDMA\(CdmaSmsSender\) 的短信发送器对象，并根据网络制式调度对应发送对象发送短信功能。
--   短信接收管理类： SmsReceiveManager 负责短信接收，listen来自RIL层的新短信信息；创建GSM\(GsmSmsReceiveHander\) 和CDMA\(CdmaSmsReceiveHandler\) 对象；创建SmsWapPushHandler 和SmsCellBroadcastHandler 对象。
+-   接口管理类：SmsInterfaceManager 负责对外提供短信发送、SIM卡短信记录操作和配置相关接口，负责创建SmsSendManager 和SmsReceiveManager 对象。
+-   短信发送管理类： SmsSendManager 负责监听 IMS网络状态；创建GSM\(GsmSmsSender\) 和CDMA\(CdmaSmsSender\) 的短信发送器对象，并根据网络制式调度对应发送对象发送短信功能。
+-   短信接收管理类： SmsReceiveManager 负责短信接收，监听来自RIL层的新短信信息；创建GSM\(GsmSmsReceiveHander\) 和CDMA\(CdmaSmsReceiveHandler\) 对象；创建SmsWapPushHandler 和SmsCellBroadcastHandler 对象。
 -   彩信编解码类：负责彩信PDU的编解码处理。
 
 ## 目录<a name="section125mcpsimp"></a>
@@ -42,8 +42,8 @@
 ## 约束<a name="section129mcpsimp"></a>
 
 -   开发语言：JavaScript。
--   软件上，需要与以下服务配合使用：Telephony核心服务（core\_service）；依赖[glib](https://gitlab.gnome.org/GNOME/glib)库。
--   硬件上，需要搭载的设备支持以下硬件：可以进行独立蜂窝通信的Modem以及SIM卡。
+-   软件约束，需要与以下服务配合使用：Telephony核心服务（core\_service）；依赖[glib](https://gitlab.gnome.org/GNOME/glib)库。
+-   硬件约束，需要搭载的设备支持以下硬件：可以进行独立蜂窝通信的Modem以及SIM卡。
 
 ## 接口说明<a name="section134mcpsimp"></a>
 
@@ -60,16 +60,65 @@
 </thead>
 <tbody><tr id="row146mcpsimp"><td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.1 "><p id="p1011717318415"><a name="p1011717318415"></a><a name="p1011717318415"></a>function sendMessage(options: SendMessageOptions): void;</p>
 </td>
-<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.2 "><p id="entry148mcpsimpp0"><a name="entry148mcpsimpp0"></a><a name="entry148mcpsimpp0"></a>发送短信，包括长短信、普通短信和数据短信。</p>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.2 "><p id="entry148mcpsimpp0"><a name="entry148mcpsimpp0"></a><a name="entry148mcpsimpp0"></a>发送短信，通过callback异步获取短信发送结果。</p>
 </td>
 <td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.3 "><p id="entry149mcpsimpp0"><a name="entry149mcpsimpp0"></a><a name="entry149mcpsimpp0"></a>SystemPermission.SEND_MESSAGES</p>
 </td>
 </tr>
 <tr id="row166mcpsimp"><td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.1 "><p id="entry167mcpsimpp0"><a name="entry167mcpsimpp0"></a><a name="entry167mcpsimpp0"></a>function createMessage(pdu: Array&lt;number&gt;, specification: string, callback: AsyncCallback&lt;ShortMessage&gt;): void;</p>
 </td>
-<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.2 "><p id="p43948592416"><a name="p43948592416"></a><a name="p43948592416"></a>通过pdu 创建解析ShortMessage对象</p>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.2 "><p id="p43948592416"><a name="p43948592416"></a><a name="p43948592416"></a>根据协议数据单元（PDU）和指定的短信协议创建短信实例，使用callback方式异步返回创建的短信实例。</p>
 </td>
 <td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.3 "><p id="entry169mcpsimpp0"><a name="entry169mcpsimpp0"></a><a name="entry169mcpsimpp0"></a>无</p>
+</td>
+</tr>
+<tr id="row166mcpsimp"><td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.1 "><p id="entry167mcpsimpp0"><a name="entry167mcpsimpp0"></a><a name="entry167mcpsimpp0"></a>function createMessage(pdu: Array&lt;number&gt;, specification: string): Promise&lt;ShortMessage&gt;</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.2 "><p id="p43948592416"><a name="p43948592416"></a><a name="p43948592416"></a>根据协议数据单元（PDU）和指定的短信协议创建短信实例，使用Promise方式异步返回创建的短信实例。</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.3 "><p id="entry169mcpsimpp0"><a name="entry169mcpsimpp0"></a><a name="entry169mcpsimpp0"></a>无</p>
+</td>
+</tr>
+<tr id="row166mcpsimp"><td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.1 "><p id="entry167mcpsimpp0"><a name="entry167mcpsimpp0"></a><a name="entry167mcpsimpp0"></a>function getDefaultSmsSlotId(callback: AsyncCallback&lt;number&gt;): void</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.2 "><p id="p43948592416"><a name="p43948592416"></a><a name="p43948592416"></a>获取发送短信的默认SIM卡槽，使用callback方式异步返回默认SIM卡槽。</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.3 "><p id="entry169mcpsimpp0"><a name="entry169mcpsimpp0"></a><a name="entry169mcpsimpp0"></a>无</p>
+</td>
+</tr>
+<tr id="row166mcpsimp"><td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.1 "><p id="entry167mcpsimpp0"><a name="entry167mcpsimpp0"></a><a name="entry167mcpsimpp0"></a>function getDefaultSmsSlotId():Promise&lt;number&gt;</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.2 "><p id="p43948592416"><a name="p43948592416"></a><a name="p43948592416"></a>获取发送短信的默认SIM卡，使用Promise方式异步返回默认SIM卡槽。</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.3 "><p id="entry169mcpsimpp0"><a name="entry169mcpsimpp0"></a><a name="entry169mcpsimpp0"></a>无</p>
+</td>
+</tr>
+<tr id="row166mcpsimp"><td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.1 "><p id="entry167mcpsimpp0"><a name="entry167mcpsimpp0"></a><a name="entry167mcpsimpp0"></a>function setSmscAddr(slotId: number, smscAddr: string, callback: AsyncCallback&lt;void&gt;): void</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.2 "><p id="p43948592416"><a name="p43948592416"></a><a name="p43948592416"></a>设置短信服务中心地址，使用callback方式异步返回undefined。</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.3 "><p id="entry169mcpsimpp0"><a name="entry169mcpsimpp0"></a><a name="entry169mcpsimpp0"></a>ohos.permission.SET_TELEPHONY_STATE</p>
+</td>
+</tr>
+<tr id="row166mcpsimp"><td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.1 "><p id="entry167mcpsimpp0"><a name="entry167mcpsimpp0"></a><a name="entry167mcpsimpp0"></a>function setSmscAddr(slotId: number, smscAddr: string): Promise&lt;void&gt;</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.2 "><p id="p43948592416"><a name="p43948592416"></a><a name="p43948592416"></a>设置短信服务中心地址，使用Promise方式异步返回undefined。</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.3 "><p id="entry169mcpsimpp0"><a name="entry169mcpsimpp0"></a><a name="entry169mcpsimpp0"></a>ohos.permission.SET_TELEPHONY_STATE</p>
+</td>
+</tr>
+    <tr id="row166mcpsimp"><td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.1 "><p id="entry167mcpsimpp0"><a name="entry167mcpsimpp0"></a><a name="entry167mcpsimpp0"></a>function getSmscAddr(slotId: number, callback: AsyncCallback&lt;string&gt;): void</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.2 "><p id="p43948592416"><a name="p43948592416"></a><a name="p43948592416"></a>获取短信服务中心地址，使用callback方式异步返回短信服务中心地址。</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.3 "><p id="entry169mcpsimpp0"><a name="entry169mcpsimpp0"></a><a name="entry169mcpsimpp0"></a>ohos.permission.GET_TELEPHONY_STATE</p>
+</td>
+</tr>
+    <tr id="row166mcpsimp"><td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.1 "><p id="entry167mcpsimpp0"><a name="entry167mcpsimpp0"></a><a name="entry167mcpsimpp0"></a>function getSmscAddr(slotId: number): Promise&lt;string&gt;</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.2 "><p id="p43948592416"><a name="p43948592416"></a><a name="p43948592416"></a>获取短信服务中心地址，使用Promise方式异步返回短信服务中心地址。</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.3 "><p id="entry169mcpsimpp0"><a name="entry169mcpsimpp0"></a><a name="entry169mcpsimpp0"></a>ohos.permission.GET_TELEPHONY_STATE</p>
 </td>
 </tr>
 </tbody>
@@ -78,6 +127,7 @@
 **表 2**  发送短信接口参数SendMessageOptions说明
 
 <a name="table137771821149"></a>
+
 <table><thead align="left"><tr id="row16777142181416"><th class="cellrowborder" valign="top" width="25%" id="mcps1.2.5.1.1"><p id="p1677762111420"><a name="p1677762111420"></a><a name="p1677762111420"></a>参数</p>
 </th>
 <th class="cellrowborder" valign="top" width="25%" id="mcps1.2.5.1.2"><p id="p32826484210"><a name="p32826484210"></a><a name="p32826484210"></a>类型</p>
@@ -251,10 +301,10 @@
 </tr>
 </tbody>
 </table>
-
 **表 6**  createMessage接口参数说明
 
 <a name="table12931820163016"></a>
+
 <table><thead align="left"><tr id="row8293152043010"><th class="cellrowborder" valign="top" width="33.33333333333333%" id="mcps1.2.4.1.1"><p id="p72931220133012"><a name="p72931220133012"></a><a name="p72931220133012"></a>参数</p>
 </th>
 <th class="cellrowborder" valign="top" width="33.33333333333333%" id="mcps1.2.4.1.2"><p id="p13293172053015"><a name="p13293172053015"></a><a name="p13293172053015"></a>类型</p>
@@ -279,6 +329,235 @@
 </tr>
 </tbody>
 </table>
+**表 7**  getDefaultSmsSlotId接口参数说明
+
+<a name="table12931820163016"></a>
+
+<table><thead align="left"><tr id="row8293152043010"><th class="cellrowborder" valign="top" width="33.33333333333333%" id="mcps1.2.4.1.1"><p id="p72931220133012"><a name="p72931220133012"></a><a name="p72931220133012"></a>参数</p>
+</th>
+<th class="cellrowborder" valign="top" width="33.33333333333333%" id="mcps1.2.4.1.2"><p id="p13293172053015"><a name="p13293172053015"></a><a name="p13293172053015"></a>类型</p>
+</th>
+<th class="cellrowborder" valign="top" width="33.33333333333333%" id="mcps1.2.4.1.3"><p id="p16293162014301"><a name="p16293162014301"></a><a name="p16293162014301"></a>描述</p>
+</th>
+</tr>
+</thead>
+<tbody><tr id="row112937206307"><td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.1 "><p id="p13293320193019"><a name="p13293320193019"></a><a name="p13293320193019"></a>callback</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.2.4.1.2 "><p id="p429315201307"><a name="p429315201307"></a><a name="p429315201307"></a>AsyncCallback&lt;number&gt;</p>
+</td>
+<td class="cellrowborder" valign="top" width="46.1%" headers="mcps1.1.5.1.4 "><p id="p440103618212"><a name="p440103618212"></a><a name="p440103618212"></a>回调函数。</p>
+<a name="ul9211219141510"></a><a name="ul9211219141510"></a><ul id="ul9211219141510"><li>0：卡槽1</li><li>1：卡槽2</li></ul>
+</td>
+</td>
+</tr>
+</tbody>
+</table>
+
+**表 8**  setSmscAddr接口参数说明
+
+<a name="table12931820163016"></a>
+
+<table><thead align="left"><tr id="row94271538039"><th class="cellrowborder" valign="top" width="17.66%" id="mcps1.1.5.1.1"><p id="p12427738837"><a name="p12427738837"></a><a name="p12427738837"></a>参数名</p>
+</th>
+<th class="cellrowborder" valign="top" width="28.18%" id="mcps1.1.5.1.2"><p id="p104274381133"><a name="p104274381133"></a><a name="p104274381133"></a>类型</p>
+</th>
+<th class="cellrowborder" valign="top" width="8.06%" id="mcps1.1.5.1.3"><p id="p24274381834"><a name="p24274381834"></a><a name="p24274381834"></a>必填</p>
+</th>
+<th class="cellrowborder" valign="top" width="46.1%" id="mcps1.1.5.1.4"><p id="p3427738938"><a name="p3427738938"></a><a name="p3427738938"></a>说明</p>
+</th>
+</tr>
+</thead>
+<tbody><tr id="row184651552734"><td class="cellrowborder" valign="top" width="17.66%" headers="mcps1.1.5.1.1 "><p id="p546614524317"><a name="p546614524317"></a><a name="p546614524317"></a>slotId</p>
+</td>
+<td class="cellrowborder" valign="top" width="28.18%" headers="mcps1.1.5.1.2 "><p id="p104661852439"><a name="p104661852439"></a><a name="p104661852439"></a>number</p>
+</td>
+<td class="cellrowborder" valign="top" width="8.06%" headers="mcps1.1.5.1.3 "><p id="p1635101510417"><a name="p1635101510417"></a><a name="p1635101510417"></a>是</p>
+</td>
+<td class="cellrowborder" valign="top" width="46.1%" headers="mcps1.1.5.1.4 "><p id="p34931544121518"><a name="p34931544121518"></a><a name="p34931544121518"></a>SIM卡槽ID：</p>
+<a name="ul3493164411516"></a><a name="ul3493164411516"></a><ul id="ul3493164411516"><li>0：卡槽1</li><li>1：卡槽2</li></ul>
+</td>
+</tr>
+<tr id="row8924552151"><td class="cellrowborder" valign="top" width="17.66%" headers="mcps1.1.5.1.1 "><p id="p119251252255"><a name="p119251252255"></a><a name="p119251252255"></a>smscAddr</p>
+</td>
+<td class="cellrowborder" valign="top" width="28.18%" headers="mcps1.1.5.1.2 "><p id="p129253521658"><a name="p129253521658"></a><a name="p129253521658"></a>string</p>
+</td>
+<td class="cellrowborder" valign="top" width="8.06%" headers="mcps1.1.5.1.3 "><p id="p8958171314615"><a name="p8958171314615"></a><a name="p8958171314615"></a>是</p>
+</td>
+<td class="cellrowborder" valign="top" width="46.1%" headers="mcps1.1.5.1.4 "><p id="p14925352154"><a name="p14925352154"></a><a name="p14925352154"></a>短信服务中心（SMSC）地址。</p>
+</td>
+</tr>
+<tr id="row4427938632"><td class="cellrowborder" valign="top" width="17.66%" headers="mcps1.1.5.1.1 "><p id="p64275383316"><a name="p64275383316"></a><a name="p64275383316"></a>callback</p>
+</td>
+<td class="cellrowborder" valign="top" width="28.18%" headers="mcps1.1.5.1.2 "><p id="p11427183811320"><a name="p11427183811320"></a><a name="p11427183811320"></a>AsyncCallback&lt;void&gt;</p>
+</td>
+<td class="cellrowborder" valign="top" width="8.06%" headers="mcps1.1.5.1.3 "><p id="p20427238435"><a name="p20427238435"></a><a name="p20427238435"></a>是</p>
+</td>
+<td class="cellrowborder" valign="top" width="46.1%" headers="mcps1.1.5.1.4 "><p id="p174278382318"><a name="p174278382318"></a><a name="p174278382318"></a>回调函数。</p>
+</td>
+</tr>
+</tbody>
+</table>
+
+**表 9**  getSmscAddr接口参数说明
+
+<a name="table12931820163016"></a>
+
+<table><thead align="left"><tr id="row108899481812"><th class="cellrowborder" valign="top" width="17.66%" id="mcps1.1.5.1.1"><p id="p10889242180"><a name="p10889242180"></a><a name="p10889242180"></a>参数名</p>
+</th>
+<th class="cellrowborder" valign="top" width="28.18%" id="mcps1.1.5.1.2"><p id="p13889142181"><a name="p13889142181"></a><a name="p13889142181"></a>类型</p>
+</th>
+<th class="cellrowborder" valign="top" width="8.06%" id="mcps1.1.5.1.3"><p id="p089019419181"><a name="p089019419181"></a><a name="p089019419181"></a>必填</p>
+</th>
+<th class="cellrowborder" valign="top" width="46.1%" id="mcps1.1.5.1.4"><p id="p48901943187"><a name="p48901943187"></a><a name="p48901943187"></a>说明</p>
+</th>
+</tr>
+</thead>
+<tbody><tr id="row1789084151812"><td class="cellrowborder" valign="top" width="17.66%" headers="mcps1.1.5.1.1 "><p id="p16890124201811"><a name="p16890124201811"></a><a name="p16890124201811"></a>slotId</p>
+</td>
+<td class="cellrowborder" valign="top" width="28.18%" headers="mcps1.1.5.1.2 "><p id="p138907411185"><a name="p138907411185"></a><a name="p138907411185"></a>number</p>
+</td>
+<td class="cellrowborder" valign="top" width="8.06%" headers="mcps1.1.5.1.3 "><p id="p789064191816"><a name="p789064191816"></a><a name="p789064191816"></a>是</p>
+</td>
+<td class="cellrowborder" valign="top" width="46.1%" headers="mcps1.1.5.1.4 "><p id="p1085441121615"><a name="p1085441121615"></a><a name="p1085441121615"></a>SIM卡槽ID：</p>
+<a name="ul285420116165"></a><a name="ul285420116165"></a><ul id="ul285420116165"><li>0：卡槽1</li><li>1：卡槽2</li></ul>
+</td>
+</tr>
+<tr id="row18906441819"><td class="cellrowborder" valign="top" width="17.66%" headers="mcps1.1.5.1.1 "><p id="p78915410183"><a name="p78915410183"></a><a name="p78915410183"></a>callback</p>
+</td>
+<td class="cellrowborder" valign="top" width="28.18%" headers="mcps1.1.5.1.2 "><p id="p1789116417184"><a name="p1789116417184"></a><a name="p1789116417184"></a>AsyncCallback&lt;string&gt;</p>
+</td>
+<td class="cellrowborder" valign="top" width="8.06%" headers="mcps1.1.5.1.3 "><p id="p108912047185"><a name="p108912047185"></a><a name="p108912047185"></a>是</p>
+</td>
+<td class="cellrowborder" valign="top" width="46.1%" headers="mcps1.1.5.1.4 "><p id="p188916414188"><a name="p188916414188"></a><a name="p188916414188"></a>回调函数。</p>
+</td>
+</tr>
+</tbody>
+</table>
+
+**表 10**  创建短信异步回调ShortMessage说明
+
+<a name="table12931820163016"></a>
+
+<table><thead align="left"><tr id="row1369315832016"><th class="cellrowborder" valign="top" width="23.34%" id="mcps1.1.4.1.1"><p id="p1871313815402"><a name="p1871313815402"></a><a name="p1871313815402"></a>变量</p>
+</th>
+<th class="cellrowborder" valign="top" width="19.06%" id="mcps1.1.4.1.2"><p id="p93231392263"><a name="p93231392263"></a><a name="p93231392263"></a>类型</p>
+</th>
+<th class="cellrowborder" valign="top" width="57.599999999999994%" id="mcps1.1.4.1.3"><p id="p145500193814"><a name="p145500193814"></a><a name="p145500193814"></a>说明</p>
+</th>
+</tr>
+</thead>
+<tbody><tr id="row13344184392519"><td class="cellrowborder" valign="top" width="23.34%" headers="mcps1.1.4.1.1 "><p id="p85256525218"><a name="p85256525218"></a><a name="p85256525218"></a>emailAddress</p>
+</td>
+<td class="cellrowborder" valign="top" width="19.06%" headers="mcps1.1.4.1.2 "><p id="p107115501923"><a name="p107115501923"></a><a name="p107115501923"></a>string</p>
+</td>
+<td class="cellrowborder" valign="top" width="57.599999999999994%" headers="mcps1.1.4.1.3 "><p id="p202695241341"><a name="p202695241341"></a><a name="p202695241341"></a>电子邮件地址。</p>
+</td>
+</tr>
+<tr id="row206942882013"><td class="cellrowborder" valign="top" width="23.34%" headers="mcps1.1.4.1.1 "><p id="p773310541229"><a name="p773310541229"></a><a name="p773310541229"></a>emailMessageBody</p>
+</td>
+<td class="cellrowborder" valign="top" width="19.06%" headers="mcps1.1.4.1.2 "><p id="p181441457223"><a name="p181441457223"></a><a name="p181441457223"></a>string</p>
+</td>
+<td class="cellrowborder" valign="top" width="57.599999999999994%" headers="mcps1.1.4.1.3 "><p id="p15573202884013"><a name="p15573202884013"></a><a name="p15573202884013"></a>电子邮件正文。</p>
+</td>
+</tr>
+<tr id="row116945832019"><td class="cellrowborder" valign="top" width="23.34%" headers="mcps1.1.4.1.1 "><p id="p12155162811211"><a name="p12155162811211"></a><a name="p12155162811211"></a>hasReplyPath</p>
+</td>
+<td class="cellrowborder" valign="top" width="19.06%" headers="mcps1.1.4.1.2 "><p id="p14794525926"><a name="p14794525926"></a><a name="p14794525926"></a>boolean</p>
+</td>
+<td class="cellrowborder" valign="top" width="57.599999999999994%" headers="mcps1.1.4.1.3 "><p id="p13754174585919"><a name="p13754174585919"></a><a name="p13754174585919"></a>收到的短信是否包含“TP-回复路径”，默认为false。</p>
+<a name="ul1470498307"></a><a name="ul1470498307"></a><ul id="ul1470498307"><li>“TP-回复路径”：移动电话可循发送SMS消息的短消息中心进行回复。</li></ul>
+</td>
+</tr>
+<tr id="row253218315237"><td class="cellrowborder" valign="top" width="23.34%" headers="mcps1.1.4.1.1 "><p id="p140111161132"><a name="p140111161132"></a><a name="p140111161132"></a>isEmailMessage</p>
+</td>
+<td class="cellrowborder" valign="top" width="19.06%" headers="mcps1.1.4.1.2 "><p id="p146951018131"><a name="p146951018131"></a><a name="p146951018131"></a>boolean</p>
+</td>
+<td class="cellrowborder" valign="top" width="57.599999999999994%" headers="mcps1.1.4.1.3 "><p id="p887603743519"><a name="p887603743519"></a><a name="p887603743519"></a>收到的短信是否为电子邮件。</p>
+</td>
+</tr>
+<tr id="row859720172311"><td class="cellrowborder" valign="top" width="23.34%" headers="mcps1.1.4.1.1 "><p id="p166361920323"><a name="p166361920323"></a><a name="p166361920323"></a>isReplaceMessage</p>
+</td>
+<td class="cellrowborder" valign="top" width="19.06%" headers="mcps1.1.4.1.2 "><p id="p01812236216"><a name="p01812236216"></a><a name="p01812236216"></a>boolean</p>
+</td>
+<td class="cellrowborder" valign="top" width="57.599999999999994%" headers="mcps1.1.4.1.3 "><p id="p022761413014"><a name="p022761413014"></a><a name="p022761413014"></a>收到的短信是否为“替换短信”，默认为false。</p>
+<a name="ul42891226707"></a><a name="ul42891226707"></a><ul id="ul42891226707"><li>“替换短信”有关详细信息，参见 “3GPP TS 23.040 9.2.3.9”。</li></ul>
+</td>
+</tr>
+<tr id="row764111193410"><td class="cellrowborder" valign="top" width="23.34%" headers="mcps1.1.4.1.1 "><p id="p1410313450214"><a name="p1410313450214"></a><a name="p1410313450214"></a>isSmsStatusReportMessage</p>
+</td>
+<td class="cellrowborder" valign="top" width="19.06%" headers="mcps1.1.4.1.2 "><p id="p1644311475213"><a name="p1644311475213"></a><a name="p1644311475213"></a>boolean</p>
+</td>
+<td class="cellrowborder" valign="top" width="57.599999999999994%" headers="mcps1.1.4.1.3 "><p id="p5701488344"><a name="p5701488344"></a><a name="p5701488344"></a>当前消息是否为“短信状态报告”，默认为false。</p>
+<a name="ul14539561111"></a><a name="ul14539561111"></a><ul id="ul14539561111"><li>“短信状态报告”是一种特定格式的短信，被用来从Service Center到Mobile Station传送状态报告。</li></ul>
+</td>
+</tr>
+<tr id="row109475100345"><td class="cellrowborder" valign="top" width="23.34%" headers="mcps1.1.4.1.1 "><p id="p19837318220"><a name="p19837318220"></a><a name="p19837318220"></a>messageClass</p>
+</td>
+<td class="cellrowborder" valign="top" width="19.06%" headers="mcps1.1.4.1.2 "><p id="p161336593118"><a name="p161336593118"></a><a name="p161336593118"></a><a href="#section141712166453">ShortMessageClass</a></p>
+</td>
+<td class="cellrowborder" valign="top" width="57.599999999999994%" headers="mcps1.1.4.1.3 "><p id="p55610014386"><a name="p55610014386"></a><a name="p55610014386"></a>短信类型。</p>
+</td>
+</tr>
+<tr id="row13623612346"><td class="cellrowborder" valign="top" width="23.34%" headers="mcps1.1.4.1.1 "><p id="p5114831626"><a name="p5114831626"></a><a name="p5114831626"></a>pdu</p>
+</td>
+<td class="cellrowborder" valign="top" width="19.06%" headers="mcps1.1.4.1.2 "><p id="p17402133611219"><a name="p17402133611219"></a><a name="p17402133611219"></a>Array&lt;number&gt;</p>
+</td>
+<td class="cellrowborder" valign="top" width="57.599999999999994%" headers="mcps1.1.4.1.3 "><p id="p177241026133411"><a name="p177241026133411"></a><a name="p177241026133411"></a>SMS消息中的协议数据单元 （PDU）。</p>
+</td>
+</tr>
+<tr id="row498012918341"><td class="cellrowborder" valign="top" width="23.34%" headers="mcps1.1.4.1.1 "><p id="p4552841928"><a name="p4552841928"></a><a name="p4552841928"></a>protocolId</p>
+</td>
+<td class="cellrowborder" valign="top" width="19.06%" headers="mcps1.1.4.1.2 "><p id="p11390871024"><a name="p11390871024"></a><a name="p11390871024"></a>number</p>
+</td>
+<td class="cellrowborder" valign="top" width="57.599999999999994%" headers="mcps1.1.4.1.3 "><p id="p16572083814"><a name="p16572083814"></a><a name="p16572083814"></a>发送短信时使用的协议标识。</p>
+</td>
+</tr>
+<tr id="row87231262349"><td class="cellrowborder" valign="top" width="23.34%" headers="mcps1.1.4.1.1 "><p id="p32951810223"><a name="p32951810223"></a><a name="p32951810223"></a>scAddress</p>
+</td>
+<td class="cellrowborder" valign="top" width="19.06%" headers="mcps1.1.4.1.2 "><p id="p4631111219219"><a name="p4631111219219"></a><a name="p4631111219219"></a>string</p>
+</td>
+<td class="cellrowborder" valign="top" width="57.599999999999994%" headers="mcps1.1.4.1.3 "><p id="p136431815349"><a name="p136431815349"></a><a name="p136431815349"></a>短信服务中心（SMSC）地址。</p>
+</td>
+</tr>
+<tr id="row1294964403418"><td class="cellrowborder" valign="top" width="23.34%" headers="mcps1.1.4.1.1 "><p id="p1253815422"><a name="p1253815422"></a><a name="p1253815422"></a>scTimestamp</p>
+</td>
+<td class="cellrowborder" valign="top" width="19.06%" headers="mcps1.1.4.1.2 "><p id="p1498814171127"><a name="p1498814171127"></a><a name="p1498814171127"></a>number</p>
+</td>
+<td class="cellrowborder" valign="top" width="57.599999999999994%" headers="mcps1.1.4.1.3 "><p id="p294716100345"><a name="p294716100345"></a><a name="p294716100345"></a>SMSC时间戳。</p>
+</td>
+</tr>
+<tr id="row169548183414"><td class="cellrowborder" valign="top" width="23.34%" headers="mcps1.1.4.1.1 "><p id="p16266133910216"><a name="p16266133910216"></a><a name="p16266133910216"></a>status</p>
+</td>
+<td class="cellrowborder" valign="top" width="19.06%" headers="mcps1.1.4.1.2 "><p id="p1955441329"><a name="p1955441329"></a><a name="p1955441329"></a>number</p>
+</td>
+<td class="cellrowborder" valign="top" width="57.599999999999994%" headers="mcps1.1.4.1.3 "><p id="p59491344113419"><a name="p59491344113419"></a><a name="p59491344113419"></a>SMS-STATUS-REPORT消息中的短信状态指示短信服务中心（SMSC）发送的短信状态。</p>
+</td>
+</tr>
+<tr id="row1526817245344"><td class="cellrowborder" valign="top" width="23.34%" headers="mcps1.1.4.1.1 "><p id="p156631801631"><a name="p156631801631"></a><a name="p156631801631"></a>userRawData</p>
+</td>
+<td class="cellrowborder" valign="top" width="19.06%" headers="mcps1.1.4.1.2 "><p id="p861981315311"><a name="p861981315311"></a><a name="p861981315311"></a>Array&lt;number&gt;</p>
+</td>
+<td class="cellrowborder" valign="top" width="57.599999999999994%" headers="mcps1.1.4.1.3 "><p id="p8487922358"><a name="p8487922358"></a><a name="p8487922358"></a>除协议头部的用户数据，即未解码的短信内容。</p>
+</td>
+</tr>
+<tr id="row183801940133512"><td class="cellrowborder" valign="top" width="23.34%" headers="mcps1.1.4.1.1 "><p id="p396619450120"><a name="p396619450120"></a><a name="p396619450120"></a>visibleMessageBody</p>
+</td>
+<td class="cellrowborder" valign="top" width="19.06%" headers="mcps1.1.4.1.2 "><p id="p819218501110"><a name="p819218501110"></a><a name="p819218501110"></a>string</p>
+</td>
+<td class="cellrowborder" valign="top" width="57.599999999999994%" headers="mcps1.1.4.1.3 "><p id="p85619013384"><a name="p85619013384"></a><a name="p85619013384"></a>短信正文。</p>
+</td>
+</tr>
+<tr id="row98751137153511"><td class="cellrowborder" valign="top" width="23.34%" headers="mcps1.1.4.1.1 "><p id="p12309536110"><a name="p12309536110"></a><a name="p12309536110"></a>visibleRawAddress</p>
+</td>
+<td class="cellrowborder" valign="top" width="19.06%" headers="mcps1.1.4.1.2 "><p id="p559135510111"><a name="p559135510111"></a><a name="p559135510111"></a>string</p>
+</td>
+<td class="cellrowborder" valign="top" width="57.599999999999994%" headers="mcps1.1.4.1.3 "><p id="p55617011389"><a name="p55617011389"></a><a name="p55617011389"></a>发送者地址。</p>
+</td>
+</tr>
+</tbody>
+</table>
+
+完整的JS API说明以及实例代码请参考：[收发短信](https://gitee.com/openharmony/docs/blob/master/zh-cn/application-dev/js-reference/apis/js-apis-sms.md)
 
 ## 使用说明<a name="section170mcpsimp"></a>
 
@@ -294,8 +573,8 @@
     import sms from "@ohos.telephony.sms";
 
     let msg: SendMessageOptions = {
-      slotId: 1,
-      destinationHost: '12312312312',
+      slotId: 0,
+      destinationHost: '123xxxxxxxx',
       content: '这是一封短信',
       sendCallback: (err, data) => {
         if (err) {

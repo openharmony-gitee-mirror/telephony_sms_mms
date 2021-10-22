@@ -189,14 +189,6 @@ declare namespace sms {
     status: number;
     /** Indicates whether the current message is SMS-STATUS-REPORT. */
     isSmsStatusReportMessage: boolean;
-    /** Indicates the email message address. */
-    emailAddress: string;
-    /** Indicates the email message body. */
-    emailMessageBody: string;
-    /** Indicates the user data excluding the data header. */
-    userRawData: Array<number>;
-    /** Indicates whether the received SMS is an email message. */
-    isEmailMessage: boolean;
   }
 
   /**

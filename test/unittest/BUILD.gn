@@ -51,7 +51,7 @@ ohos_executable("tel_sms_mms_test") {
     "ces_standard:cesfwk_services",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
-    "samgr_L2:samgr_proxy",
+    "samgr_standard:samgr_proxy",
   ]
 
   defines = [

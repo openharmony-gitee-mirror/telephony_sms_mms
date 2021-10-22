@@ -346,7 +346,6 @@ static napi_value CreateShortMessageValue(napi_env env, const ShortMessage *shor
     SetPropertyArray(env, object, "pdu", shortMessage->GetPdu());
     NapiUtil::SetPropertyInt32(env, object, "status", shortMessage->GetStatus());
     NapiUtil::SetPropertyBoolean(env, object, "isSmsStatusReportMessage", shortMessage->IsSmsStatusReportMessage());
-    NapiUtil::SetPropertyInt32(env, object, "simMessageStatus", shortMessage->GetIccMessageStatus());
     return object;
 }
 
@@ -1018,6 +1017,8 @@ static void NativeGetAllSimMessages(napi_env env, void *data)
     if (IsShortMessageManagerInit()) {
         context->messageArray = g_shortMessageManager->GetAllSimMessages(context->slotId);
         context->resolved = true;
+        std::vector<ShortMessage> arr = context->messageArray;
+        TELEPHONY_LOGD("NativeGetAllSimMessages messageArray.length = %{public}zu", arr.size());
     } else {
         context->resolved = false;
     }
@@ -1030,7 +1031,7 @@ static napi_value CreateSimShortMessageValue(napi_env env, const ShortMessage *s
     napi_create_object(env, &simObject);
     std::string shortMessageKey("shortMessage");
     napi_set_named_property(env, simObject, shortMessageKey.c_str(), object);
-    NapiUtil::SetPropertyInt32(env, simObject, "SmsSimMessageStatus", shortMessage->GetIccMessageStatus());
+    NapiUtil::SetPropertyInt32(env, simObject, "simMessageStatus", shortMessage->GetIccMessageStatus());
     NapiUtil::SetPropertyInt32(env, simObject, "indexOnSim", shortMessage->GetIndexOnSim());
     return simObject;
 }

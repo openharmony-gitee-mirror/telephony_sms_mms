@@ -67,6 +67,14 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filename" name="gsm_sms_udata_codec.h" desc="Derived from third-party software and retains its original license and copyright information."/>
                 <filteritem type="filename" name="msg_text_convert.cpp" desc="Derived from third-party software and retains its original license and copyright information."/>
                 <filteritem type="filename" name="msg_text_convert.h" desc="Derived from third-party software and retains its original license and copyright information."/>
+                <filteritem type="filename" name="sms_common_utils.h" desc="Derived from third-party software and retains its original license and copyright information."/>
+                <filteritem type="filename" name="sms_common_utils.cpp" desc="Derived from third-party software and retains its original license and copyright information."/>
+                <filteritem type="filename" name="sms_cb_message.h" desc="Derived from third-party software and retains its original license and copyright information."/>
+                <filteritem type="filename" name="sms_cb_message.cpp" desc="Derived from third-party software and retains its original license and copyright information."/>
+                <filteritem type="filename" name="sms_pdu_code_type.h" desc="Derived from third-party software and retains its original license and copyright information."/>
+                <filteritem type="filename" name="cdma_sms_pdu_codec.h" desc="Derived from third-party software and retains its original license and copyright information."/>
+                <filteritem type="filename" name="cdma_sms_pdu_codec.cpp" desc="Derived from third-party software and retains its original license and copyright information."/>
+                <filteritem type="filename" name="cdma_sms_types.h" desc="Derived from third-party software and retains its original license and copyright information."/>
             </filefilter>
         </filefilterlist>
     </oatconfig>

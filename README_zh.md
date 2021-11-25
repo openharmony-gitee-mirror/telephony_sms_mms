@@ -21,7 +21,7 @@
 
 -   接口管理类：SmsInterfaceManager 负责对外提供短信发送、SIM卡短信记录操作和配置相关接口，负责创建SmsSendManager 和SmsReceiveManager 对象。
 -   短信发送管理类： SmsSendManager 负责监听 IMS网络状态；创建GSM\(GsmSmsSender\) 和CDMA\(CdmaSmsSender\) 的短信发送器对象，并根据网络制式调度对应发送对象发送短信功能。
--   短信接收管理类： SmsReceiveManager 负责短信接收，监听来自RIL层的新短信信息；创建GSM\(GsmSmsReceiveHander\) 和CDMA\(CdmaSmsReceiveHandler\) 对象；创建SmsWapPushHandler 和SmsCellBroadcastHandler 对象。
+-   短信接收管理类： SmsReceiveManager 负责短信接收，监听来自RIL层的新短信信息；创建GSM\(GsmSmsReceiveHandler\) 和CDMA\(CdmaSmsReceiveHandler\) 对象；创建SmsWapPushHandler 和SmsCellBroadcastHandler 对象。
 -   彩信编解码类：负责彩信PDU的编解码处理。
 
 ## 目录<a name="section125mcpsimp"></a>
